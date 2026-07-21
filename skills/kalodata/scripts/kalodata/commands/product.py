@@ -28,6 +28,7 @@ ALL_FIELDS = (
     "live_revenue",
     "video_revenue",
     "showcase_revenue",
+    "master_image_url",
 )
 DEFAULT_FIELDS = ("product_id", "product_name", "revenue", "sales_volumn")
 
@@ -60,6 +61,7 @@ def rank(cfg, opts, args):
         body["is_tts_product"] = tts
     if opts.get("all"):
         body["need_all"] = True
+    common.apply_images(opts, body, "master_image_url")
     return common.run_rank(
         cfg,
         opts,
@@ -82,6 +84,8 @@ def detail(cfg, opts, ids):
     def fetch(product_id):
         body = common.base_body(cfg, opts, "detail")
         body.update(product_id=product_id, need_extra=True)
+        if opts.get("images"):
+            body["need_image"] = 1
         return api.request(cfg, "/tiktok/product/detail", body, timeout=10)
 
     def post(d, o, notes):
@@ -128,6 +132,7 @@ COMMANDS = [
             Flag("--tts", "only fully-managed (TTS) products", kind="flag", default=False),
             Flag("--no-tts", "exclude fully-managed products", kind="flag", default=False),
             Flag("--all", "include zero-sales products", kind="flag", default=False),
+            common.images_flag(),
         ],
         examples=[
             "kalo product rank --region US --category 601739 --sort revenue",
@@ -139,7 +144,10 @@ COMMANDS = [
         summary="Full metrics for one or more products (batched client-side)",
         handler=lambda cfg, opts, args: detail(cfg, opts, args),
         flags=common.common_flags("detail")
-        + [Flag("--full", "include the full revenue_trend series", kind="flag", default=False)],
+        + [
+            Flag("--full", "include the full revenue_trend series", kind="flag", default=False),
+            common.images_flag(),
+        ],
         positional="product_id",
         pos_min=1,
         pos_max=None,

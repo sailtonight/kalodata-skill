@@ -17,9 +17,16 @@ class MockKalo(BaseHTTPRequestHandler):
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
         body = json.loads(self.rfile.read(length) or b"{}")
+        self._respond(body)
+
+    def do_GET(self):
+        self._respond({})
+
+    def _respond(self, body):
         headers = {k.lower(): v for k, v in self.headers.items()}
-        self.server.requests.append((self.path, headers, body))
-        payload = self.server.responses.get(self.path, {"success": True, "data": []})
+        path = self.path.split("?")[0]
+        self.server.requests.append((path, headers, body))
+        payload = self.server.responses.get(path, {"success": True, "data": []})
         if callable(payload):
             payload = payload(body)
         raw = json.dumps(payload).encode()

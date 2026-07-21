@@ -29,6 +29,7 @@ ALL_FIELDS = (
     "self_promotion_revenue",
     "shopping_mall_revenue",
     "on_sell_product_count",
+    "image_url",
 )
 DEFAULT_FIELDS = ("shop_id", "shop_name", "revenue", "sales_volumn")
 
@@ -40,6 +41,7 @@ def rank(cfg, opts, args):
     common.put_range(body, opts, "price", "unit_price_range", "--price")
     if opts.get("category"):
         body["category_ids"] = opts["category"]
+    common.apply_images(opts, body, "image_url")
     return common.run_rank(
         cfg,
         opts,
@@ -98,6 +100,7 @@ COMMANDS = [
             Flag("--price", 'unit price range "min-max"', metavar="MIN-MAX"),
             Flag("--type", "shop type", choices=("BRAND", "RETAILER")),
             Flag("--keyword", "shop name keyword (disables --sort upstream)", metavar="TEXT"),
+            common.images_flag(),
         ],
         examples=[
             "kalo shop rank --region GB --type BRAND",

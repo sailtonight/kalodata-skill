@@ -116,6 +116,45 @@ def test_detail_full_trend(capsys, env):
     assert "revenue_trend[2]: 10,30" in out
 
 
+def test_credit_usage(capsys, env):
+    env.responses["/credit/usage"] = {
+        "success": True,
+        "data": [
+            {"type": "shop_creator_rank", "total": 30000, "remain": 29990, "endTime": 1786703233189},
+            {"type": "detail", "total": 1000, "remain": 500, "endTime": 1786703233189},
+        ],
+    }
+    code, out = run(capsys, "credit")
+    assert code == 0
+    assert "credits[2]{type,remain,total,expires}:" in out
+    assert "shop_creator_rank,29990,30000,2026-08-14" in out
+
+
+def test_images_flag_adds_column(capsys, env):
+    env.responses["/tiktok/shop/rank"] = {
+        "success": True,
+        "data": [{"shop_id": "9", "shop_name": "S", "revenue": 1, "sales_volumn": 2, "image_url": "https://img/x.jpg"}],
+    }
+    code, out = run(capsys, "shop", "rank", "--images")
+    assert code == 0
+    assert env.requests[0][2]["need_image"] == 1
+    assert "image_url" in out.splitlines()[0]
+    assert "https://img/x.jpg" in out
+
+
+def test_creator_images(capsys, env):
+    env.responses["/tiktok/creator/images"] = {
+        "success": True,
+        "data": {"111": "https://img/a.jpg", "222": "https://img/b.jpg"},
+    }
+    code, out = run(capsys, "creator", "images", "111", "222")
+    assert code == 0
+    body = env.requests[0][2]
+    assert body["creator_ids"] == ["111", "222"]
+    assert body["need_image"] == 1
+    assert "https://img/a.jpg" in out
+
+
 def test_creator_detail_by_handle(capsys, env):
     env.responses["/tiktok/creator/detailByHandle"] = {
         "success": True,
@@ -205,5 +244,5 @@ def test_home_lists_all_commands(capsys, monkeypatch, tmp_path):
     monkeypatch.setenv("KALODATA_CONFIG_DIR", str(tmp_path))
     code, out = run(capsys)
     assert code == 0
-    assert "commands[14]" in out
+    assert "commands[16]" in out
     assert "kalo config" in out

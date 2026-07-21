@@ -11,6 +11,7 @@ import random
 import socket
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 from .config import Config
@@ -74,8 +75,8 @@ def _translate_failure(code, message: str, empty_on_not_found: bool):
     raise KaloError(f"upstream error: {msg or 'unknown failure'}")
 
 
-def _do_request(url: str, data: bytes, headers: dict, timeout: float):
-    req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+def _do_request(url: str, data: bytes | None, headers: dict, timeout: float, method: str = "POST"):
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return resp.status, resp.read()
@@ -93,17 +94,23 @@ def request(
     extra_headers: dict | None = None,
     timeout: float = 30.0,
     empty_on_not_found: bool = False,
+    method: str = "POST",
 ):
-    """POST base_url+path with the JSON body; return the envelope's `data`."""
+    """Call base_url+path (JSON body for POST, query params for GET); return the envelope's `data`."""
     _require_auth(cfg)
     url = cfg.base_url.rstrip("/") + path
     headers = _headers(cfg, extra_headers)
-    payload = json.dumps(body).encode("utf-8")
+    if method == "GET":
+        if body:
+            url += "?" + urllib.parse.urlencode(body)
+        payload = None
+    else:
+        payload = json.dumps(body).encode("utf-8")
 
     last = "unknown error"
     for attempt in range(_RETRIES):
         try:
-            status, raw = _do_request(url, payload, headers, timeout)
+            status, raw = _do_request(url, payload, headers, timeout, method)
             if status >= 500:
                 raise _Retryable(f"HTTP {status}")
             try:

@@ -45,6 +45,22 @@ def category_flag() -> Flag:
     )
 
 
+def images_flag() -> Flag:
+    return Flag("--images", "include image URLs in the output", kind="flag", default=False)
+
+
+def apply_images(opts: dict, body: dict, image_field: str) -> None:
+    """--images: ask upstream for image URLs and surface the column in the output."""
+    if not opts.get("images"):
+        return
+    body["need_image"] = 1
+    spec = opts.get("fields")
+    if not spec:
+        opts["fields"] = image_field
+    elif image_field not in spec:
+        opts["fields"] = f"{spec},{image_field}"
+
+
 # ---------------------------------------------------------------- body helpers
 
 

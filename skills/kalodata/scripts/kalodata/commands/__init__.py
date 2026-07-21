@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from ..core import Command
-from . import category, creator, livestream, meta, product, shop, video
+from . import category, creator, credit, livestream, meta, product, shop, video
 
 COMMANDS: list[Command] = []
-for _mod in (video, product, shop, creator, livestream, category, meta):
+for _mod in (video, product, shop, creator, livestream, category, credit, meta):
     COMMANDS.extend(_mod.COMMANDS)
 
 # noun -> default subcommand when invoked bare (content first: `kalo product` == rank)
