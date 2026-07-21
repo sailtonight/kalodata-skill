@@ -64,3 +64,11 @@ Check with `kalo config`.
 - Trending research: `kalo product rank --region US --range last7Day` → `kalo product detail <id>` → `kalo video rank --product <id>`
 - Creator scouting: `kalo creator rank --category <id> --followers 10000-1000000` → `kalo creator detail <id>` (has contact email)
 - Category drilldown: `kalo category search "beauty"` → `kalo category detail <id>` → `kalo shop rank --category <id>`
+
+## Playbooks
+
+For complex analysis — product/creator diagnosis, category sourcing research, creator
+recommendation, viral-video methodology, shot-by-shot script writing — read
+[references/playbooks.md](references/playbooks.md) first and follow its mandatory steps
+(always benchmark against same-category / same-price-band / same-follower-tier peers
+before drawing conclusions).
