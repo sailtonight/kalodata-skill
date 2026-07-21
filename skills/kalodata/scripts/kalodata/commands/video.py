@@ -30,7 +30,9 @@ DEFAULT_FIELDS = ("video_id", "video_title", "revenue", "views")
 
 def rank(cfg, opts, args):
     body = {"need_extra": True}
-    common.put_optional(body, opts, {"shop": "shop_id", "creator": "creator_id", "roas": "ads_roas"})
+    common.put_optional(
+        body, opts, {"shop": "shop_id", "creator": "creator_id", "roas": "ads_roas", "keyword": "keyword"}
+    )
     common.put_numeric_id(body, opts, "product", "product_id", "--product")
     common.put_range(body, opts, "revenue", "revenue_range", "--revenue")
     common.put_range(body, opts, "followers", "followers_range", "--followers")
@@ -95,6 +97,7 @@ COMMANDS = [
             Flag("--revenue", 'revenue range "min-max"', metavar="MIN-MAX"),
             Flag("--followers", 'creator followers range "min-max"', metavar="MIN-MAX"),
             Flag("--roas", "ads ROAS filter", metavar="ROAS"),
+            Flag("--keyword", "video title keyword", metavar="TEXT"),
             Flag("--ai", "only AI-generated videos", kind="flag", default=False),
             Flag("--no-ai", "only non-AI videos", kind="flag", default=False),
         ],

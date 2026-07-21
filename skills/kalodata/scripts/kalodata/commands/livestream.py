@@ -44,7 +44,7 @@ def _fmt_times(d: dict) -> dict:
 
 def rank(cfg, opts, args):
     body = {}
-    common.put_optional(body, opts, {"shop": "shop_id", "creator": "creator_id"})
+    common.put_optional(body, opts, {"shop": "shop_id", "creator": "creator_id", "keyword": "keyword"})
     common.put_numeric_id(body, opts, "product", "product_id", "--product")
     common.put_range(body, opts, "followers", "followers_range", "--followers")
     if opts.get("category"):
@@ -100,6 +100,7 @@ COMMANDS = [
             Flag("--creator", "filter by creator id", metavar="ID"),
             Flag("--product", "filter by product id (numeric)", metavar="ID"),
             Flag("--followers", 'creator followers range "min-max"', metavar="MIN-MAX"),
+            Flag("--keyword", "livestream title keyword", metavar="TEXT"),
         ],
         examples=["kalo live rank --region TH --sort views"],
     ),

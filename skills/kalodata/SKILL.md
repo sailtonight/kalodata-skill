@@ -39,10 +39,10 @@ Check with `kalo config`.
 | `kalo shop rank` | top shops; --type BRAND\|RETAILER --keyword |
 | `kalo shop detail <id...>` | revenue split, top product ids |
 | `kalo creator rank` | top creators; --followers --engagement --product |
-| `kalo creator detail <id...>` | contact email/handle, GPM, trend |
-| `kalo video rank` | top shoppable videos; --product --creator --ai |
+| `kalo creator detail <id\|@handle...>` | contact email/handle, GPM, trend; handle match is fuzzy — verify the returned creator_handle |
+| `kalo video rank` | top shoppable videos; --product --creator --keyword --ai |
 | `kalo video detail <id...>` | full video metrics + trend |
-| `kalo live rank` | top livestreams |
+| `kalo live rank` | top livestreams; --keyword |
 | `kalo live detail <id...>` | viewers, GPM, top product ids |
 | `kalo category rank` | top categories; --level 1\|2\|3 |
 | `kalo category detail <id...>` | category revenue split + trend |

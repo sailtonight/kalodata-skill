@@ -60,19 +60,32 @@ def rank(cfg, opts, args):
 
 
 def detail(cfg, opts, ids):
-    def fetch(creator_id):
+    any_handle = any(not i.lstrip("@").isdigit() for i in ids)
+
+    def fetch(ident):
         body = common.base_body(cfg, opts, "detail")
-        body.update(creator_id=creator_id, need_extra=True)
-        if opts.get("shop"):
-            body["shop_id"] = opts["shop"]
-        if opts.get("category"):
-            try:
-                body["category_ids"] = [int(c) for c in opts["category"]]
-            except ValueError:
-                raise UsageError("--category must be numeric ids for creator detail") from None
-        return api.request(cfg, "/tiktok/creator/detail", body)
+        body["need_extra"] = True
+        if ident.lstrip("@").isdigit():
+            body["creator_id"] = ident.lstrip("@")
+            endpoint = "/tiktok/creator/detail"
+            if opts.get("shop"):
+                body["shop_id"] = opts["shop"]
+            if opts.get("category"):
+                try:
+                    body["category_ids"] = [int(c) for c in opts["category"]]
+                except ValueError:
+                    raise UsageError("--category must be numeric ids for creator detail") from None
+        else:
+            # upstream rejects a leading @ and matches handles fuzzily
+            body["creator_handle"] = ident.lstrip("@")
+            endpoint = "/tiktok/creator/detailByHandle"
+        return api.request(cfg, endpoint, body)
 
     def post(d, o, notes):
+        if any_handle:
+            notes.append(
+                "Handle lookup is fuzzy — check creator_handle in the result matches what you meant"
+            )
         render.truncate_text(
             d, "creator_bio", 300, o.get("full"), notes, "Add `--full` for the complete bio"
         )
@@ -116,17 +129,17 @@ COMMANDS = [
     ),
     Command(
         path="creator detail",
-        summary="Full profile for one or more creators (contact, GPM, trend)",
+        summary="Full profile for one or more creators, by id or @handle (contact, GPM, trend)",
         handler=lambda cfg, opts, args: detail(cfg, opts, args),
         flags=common.common_flags("detail")
         + [
             common.category_flag(),
-            Flag("--shop", "scope metrics to one shop id", metavar="ID"),
+            Flag("--shop", "scope metrics to one shop id (id lookups only)", metavar="ID"),
             Flag("--full", "include full bio and revenue_trend series", kind="flag", default=False),
         ],
-        positional="creator_id",
+        positional="creator_id_or_handle",
         pos_min=1,
         pos_max=None,
-        examples=["kalo creator detail 7212345678"],
+        examples=["kalo creator detail 7212345678", "kalo creator detail @myfamilypov"],
     ),
 ]

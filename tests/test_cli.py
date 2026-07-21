@@ -116,6 +116,30 @@ def test_detail_full_trend(capsys, env):
     assert "revenue_trend[2]: 10,30" in out
 
 
+def test_creator_detail_by_handle(capsys, env):
+    env.responses["/tiktok/creator/detailByHandle"] = {
+        "success": True,
+        "data": {"creator_id": "999", "creator_handle": "@_cakedfinds", "revenue": 1},
+    }
+    code, out = run(capsys, "creator", "detail", "@cakedfinds")
+    assert code == 0
+    path, _, body = env.requests[0]
+    assert path == "/tiktok/creator/detailByHandle"
+    assert body["creator_handle"] == "cakedfinds"  # leading @ stripped
+    assert "fuzzy" in out
+
+
+def test_video_live_keyword_passthrough(capsys, env):
+    env.responses["/tiktok/video/rank"] = {"success": True, "data": []}
+    env.responses["/tiktok/livestream/rank"] = {"success": True, "data": []}
+    code, _ = run(capsys, "video", "rank", "--keyword", "perfume")
+    assert code == 0
+    assert env.requests[0][2]["keyword"] == "perfume"
+    code, _ = run(capsys, "live", "rank", "--keyword", "perfume")
+    assert code == 0
+    assert env.requests[1][2]["keyword"] == "perfume"
+
+
 def test_shop_keyword_omits_sort(capsys, env):
     env.responses["/tiktok/shop/rank"] = {"success": True, "data": []}
     code, _ = run(capsys, "shop", "rank", "--keyword", "anker")
