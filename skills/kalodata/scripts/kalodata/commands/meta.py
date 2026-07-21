@@ -18,7 +18,6 @@ def config_show(cfg, opts, args):
     data = {
         "file": str(path) + ("" if path.exists() else " (missing)"),
         "api_key": masked,
-        "user_id": cfg.user_id or "missing",
         "base_url": cfg.base_url,
         "defaults": f"region {cfg.region} · language {cfg.language} · currency {cfg.currency}",
     }
@@ -27,14 +26,13 @@ def config_show(cfg, opts, args):
         return 0
     render.emit_detail("config", data)
     if not cfg.authed:
-        render.emit_help(["Run `kalo config set --key <API_KEY> --user-id <NUMERIC_ID>`"])
+        render.emit_help(["Run `kalo config set --key <API_KEY>`"])
     return 0
 
 
 def config_set(cfg, opts, args):
     updates = {
         "api_key": opts.get("key"),
-        "user_id": opts.get("user_id"),
         "base_url": opts.get("base_url"),
         "region": opts.get("region"),
         "language": opts.get("language"),
@@ -44,10 +42,8 @@ def config_set(cfg, opts, args):
     if not updates:
         raise UsageError(
             "nothing to set",
-            ["usage: kalo config set --key <API_KEY> --user-id <ID> [--region US]"],
+            ["usage: kalo config set --key <API_KEY> [--region US]"],
         )
-    if "user_id" in updates and not str(updates["user_id"]).isdigit():
-        raise UsageError(f"--user-id must be numeric, got '{updates['user_id']}'")
     if "region" in updates:
         region = updates["region"].upper()
         if region not in validate.REGIONS:
@@ -72,13 +68,12 @@ COMMANDS = [
         summary="Save credentials/defaults to ~/.config/kalodata/config.toml",
         handler=config_set,
         flags=[
-            Flag("--key", "KaloData API key (secret-key header)", metavar="KEY"),
-            Flag("--user-id", "numeric user id (X-User-Id header)", metavar="ID"),
+            Flag("--key", "KaloData API token (secret-key header)", metavar="KEY"),
             Flag("--base-url", "API base URL (default production)", metavar="URL"),
             Flag("--region", "default region", metavar="REGION"),
             Flag("--language", "default language", metavar="LANG"),
             Flag("--currency", "default currency", metavar="CUR"),
         ],
-        examples=["kalo config set --key sk-xxx --user-id 12345 --region US"],
+        examples=["kalo config set --key <token> --region US"],
     ),
 ]

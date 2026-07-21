@@ -59,8 +59,8 @@ def bin_path() -> str:
 
 def auth_line(cfg: Config) -> str:
     if cfg.authed:
-        return f"auth: ok (user {cfg.user_id})"
-    return "auth: not configured — run `kalo config set --key <API_KEY> --user-id <ID>`"
+        return f"auth: ok (key …{cfg.api_key[-4:]})" if len(cfg.api_key) > 4 else "auth: ok"
+    return "auth: not configured — run `kalo config set --key <API_KEY>`"
 
 
 def home_text(cfg: Config) -> str:

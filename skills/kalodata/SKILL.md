@@ -27,7 +27,7 @@ Errors are structured on stdout with actionable `help:` lines. Exit codes: 0 ok,
 
 ## Auth
 
-Requires `KALODATA_API_KEY` + numeric `KALODATA_USER_ID` (env or `kalo config set --key ... --user-id ...`).
+Requires `KALODATA_API_KEY` (env or `kalo config set --key ...`), sent as the `secret-key` header.
 Check with `kalo config`.
 
 ## Commands

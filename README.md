@@ -14,11 +14,10 @@ npx skills add Kalodata/kalodata-skill -g            # global
 ## Configure
 
 ```sh
-export KALODATA_API_KEY=<api-key>
-export KALODATA_USER_ID=<numeric-user-id>
+export KALODATA_API_KEY=<token>
 ```
 
-Or persist with `kalo config set --key <api-key> --user-id <id>`. Optional: `KALODATA_BASE_URL` (defaults to production), `KALODATA_REGION` / `KALODATA_LANGUAGE` / `KALODATA_CURRENCY`.
+Or persist with `kalo config set --key <token>`. The token is sent as the `secret-key` header. Optional: `KALODATA_BASE_URL` (defaults to production), `KALODATA_REGION` / `KALODATA_LANGUAGE` / `KALODATA_CURRENCY`.
 
 ## Usage
 

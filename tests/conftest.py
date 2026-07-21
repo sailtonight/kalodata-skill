@@ -54,7 +54,6 @@ def mock_server():
 @pytest.fixture
 def env(monkeypatch, mock_server, tmp_path):
     monkeypatch.setenv("KALODATA_API_KEY", "test-key")
-    monkeypatch.setenv("KALODATA_USER_ID", "12345")
     monkeypatch.setenv("KALODATA_BASE_URL", f"http://127.0.0.1:{mock_server.server_address[1]}")
     monkeypatch.setenv("KALODATA_CONFIG_DIR", str(tmp_path / "cfg"))
     return mock_server

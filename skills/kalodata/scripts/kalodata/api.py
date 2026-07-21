@@ -21,8 +21,8 @@ _RETRIES = 3
 _PARAM_HINTS = ("must be", "invalid", "required", "for input string", "parameter")
 
 AUTH_HELP = [
-    "Run `kalo config set --key <API_KEY> --user-id <NUMERIC_ID>` to authenticate",
-    "Or set KALODATA_API_KEY and KALODATA_USER_ID in the environment",
+    "Run `kalo config set --key <API_KEY>` to authenticate",
+    "Or set KALODATA_API_KEY in the environment",
 ]
 
 
@@ -33,19 +33,13 @@ class _Retryable(Exception):
 def _require_auth(cfg: Config) -> None:
     if not cfg.api_key:
         raise KaloError("KALODATA_API_KEY is not configured", kind="auth", help_lines=AUTH_HELP)
-    if not cfg.user_id:
-        raise KaloError("KALODATA_USER_ID is not configured", kind="auth", help_lines=AUTH_HELP)
-    if not str(cfg.user_id).isdigit():
-        raise KaloError(
-            f"user id must be numeric, got '{cfg.user_id}'", kind="auth", help_lines=AUTH_HELP
-        )
 
 
 def _headers(cfg: Config, extra: dict | None) -> dict:
     h = {
         "Content-Type": "application/json;charset=UTF-8",
         "secret-key": cfg.api_key,
-        "X-User-Id": str(cfg.user_id),
+        "source-type": "SKILL",
     }
     if extra:
         h.update(extra)

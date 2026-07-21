@@ -9,7 +9,7 @@ def run(capsys, *argv):
 
 
 def test_home_without_config(capsys, monkeypatch, tmp_path):
-    for var in ("KALODATA_API_KEY", "KALODATA_USER_ID", "KALODATA_BASE_URL"):
+    for var in ("KALODATA_API_KEY", "KALODATA_BASE_URL"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("KALODATA_CONFIG_DIR", str(tmp_path))
     code, out = run(capsys)
@@ -51,7 +51,8 @@ def test_rank_happy_path(capsys, env):
     assert "kalo product detail" in out  # contextual disclosure
     path, headers, body = env.requests[0]
     assert headers["secret-key"] == "test-key"
-    assert headers["x-user-id"] == "12345"
+    assert headers["source-type"] == "SKILL"
+    assert "x-user-id" not in headers
     assert body["sort_field"] == {"field": "revenue", "type": "DESC"}
     assert body["date_range"] == "last30Day"
 
@@ -221,23 +222,14 @@ def test_default_subcommand_content_first(capsys, env):
 
 
 def test_config_set_and_show(capsys, monkeypatch, tmp_path):
-    for var in ("KALODATA_API_KEY", "KALODATA_USER_ID"):
-        monkeypatch.delenv(var, raising=False)
+    monkeypatch.delenv("KALODATA_API_KEY", raising=False)
     monkeypatch.setenv("KALODATA_CONFIG_DIR", str(tmp_path))
-    code, out = run(capsys, "config", "set", "--key", "sk-abc123", "--user-id", "42")
+    code, out = run(capsys, "config", "set", "--key", "sk-abc123")
     assert code == 0
     code, out = run(capsys, "config")
     assert code == 0
     assert "…c123" in out or "c123" in out
-    assert "user_id: \"42\"" in out or "user_id: 42" in out
     assert "sk-abc123" not in out  # masked
-
-
-def test_config_set_rejects_non_numeric_user(capsys, monkeypatch, tmp_path):
-    monkeypatch.setenv("KALODATA_CONFIG_DIR", str(tmp_path))
-    code, out = run(capsys, "config", "set", "--user-id", "abc")
-    assert code == 2
-    assert "must be numeric" in out
 
 
 def test_home_lists_all_commands(capsys, monkeypatch, tmp_path):

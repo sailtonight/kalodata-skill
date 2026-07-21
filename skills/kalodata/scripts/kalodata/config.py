@@ -11,7 +11,6 @@ DEFAULT_BASE_URL = "https://www.kalodata.com/openapi/v1"
 
 ENV_KEYS = {
     "api_key": "KALODATA_API_KEY",
-    "user_id": "KALODATA_USER_ID",
     "base_url": "KALODATA_BASE_URL",
     "region": "KALODATA_REGION",
     "language": "KALODATA_LANGUAGE",
@@ -28,7 +27,6 @@ def config_path() -> Path:
 @dataclass
 class Config:
     api_key: str | None = None
-    user_id: str | None = None
     base_url: str = DEFAULT_BASE_URL
     region: str = "US"
     language: str = "en-US"
@@ -36,7 +34,7 @@ class Config:
 
     @property
     def authed(self) -> bool:
-        return bool(self.api_key and self.user_id)
+        return bool(self.api_key)
 
 
 def _read_file() -> dict:
@@ -63,7 +61,6 @@ def load() -> Config:
 
     return Config(
         api_key=pick("api_key"),
-        user_id=pick("user_id"),
         base_url=pick("base_url", DEFAULT_BASE_URL) or DEFAULT_BASE_URL,
         region=pick("region", "US") or "US",
         language=pick("language", "en-US") or "en-US",
