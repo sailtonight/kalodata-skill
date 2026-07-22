@@ -1,136 +1,137 @@
-# 分析方法论 Playbooks
+# Analysis playbooks
 
-复杂分析场景的最佳实践。每个 playbook 给出强制执行流程、`kalo` 命令映射和禁止行为。
-命令均为缩写：`kalo` = `python3 <this-skill-dir>/scripts/kalo.py`。
+Best practices for complex analysis. Each playbook gives a mandatory procedure, its `kalo`
+command mapping, and what not to do.
+Commands are written in shorthand: `kalo` = `python3 <this-skill-dir>/scripts/kalo.py`.
 
-通用约定：
+Shared conventions:
 
-- 类目定位统一用 `kalo category search <关键词>`（非英语市场先用当地语种关键词），通常选三级类目（level=3）。
-- rank 类命令翻页上限 `--page 5`、每页上限 `--limit 100`。
-- detail 类命令支持一次传多个 id（`kalo product detail <id1> <id2> ...`），**禁止逐个 id 循环调用**——白白多花数倍往返和时间。
-- KaloData 只有 TikTok 数据；不提供卖点分析、评论分析、履约率、视频脚本/字幕数据。用户要这些时明确说明限制，禁止编造。
+- Always resolve categories with `kalo category search <keyword>` (for non-English markets, search the local-language keyword first). Prefer level-3 categories.
+- Rank commands: `--page 5` max, `--limit 100` max per page.
+- Detail commands take many ids at once (`kalo product detail <id1> <id2> ...`). **Never loop one id at a time** — it multiplies round trips and wall-clock for nothing.
+- KaloData covers TikTok data only. No selling-point analysis, no review analysis, no fulfillment rates, no video scripts or captions. When asked for these, state the limitation — never fabricate.
 
 ---
 
-## 1. 商品诊断（product-diagnosis）
+## 1. Product diagnosis (product-diagnosis)
 
-**触发**：「分析这款商品」「为什么卖不动」「增长/优化建议」等聚焦**单一商品**、需要同价格带对比的场景。类目级选品分析用 playbook 3。
+**Triggers**: "analyze this product", "why isn't it selling", "how do I grow this" — anything focused on a **single product** that needs same-price-band comparison. For category-level sourcing research use playbook 3.
 
-**强制四步法：**
+**Mandatory four steps:**
 
-1. **确定类目 id 和价格带**（必须第一步）
-   - `kalo product detail <商品id>` 拿商品单价；类目用 `kalo category search <商品关键词>` 解析（选 level=3）。
-   - 按单价 ±25% 确定价格带（如 $89 → `--price 70-110`）。
-   - 📌 没有类目 id + 价格带 = 选不出有效对标商品，跨类目或跨价格带对比都会污染结论。
-2. **行业数据采集**
-   - `kalo category detail <类目id>` 取类目大盘（GMV、增长率、渠道结构）——商品增长率必须与类目增长率对照（如「商品 -40.9% vs 类目 -6.9%，跌得远比大盘快」）。
-   - `kalo product rank --category <类目id> --price <min-max>` 拉同类目同价格带榜单（Top 20-30）。
-   - `kalo product detail <id1> <id2> ...` 一次性取 Top 5-10 个对标商品的详情，至少 5 个样本。
-   - 📌 只有榜单 ≠ 完成采集，必须有对标商品的详情数据。
-3. **相对位置评估**：诊断商品 vs 同价格带平均/中位数 vs 头部 Top 3-5，算出相对位置（「高于平均 X%」「位于前 Y%」）。
-4. **结论输出**：每个指标必须带对比依据。
-   - ✅ 「单价 $89，同价格带平均 $75，定价偏高 15%，但销量增速仍高于均值，定价可维持」
-   - ❌ 「$89 偏高，需要降价」（无对比依据）
+1. **Pin down category id and price band** (always first)
+   - `kalo product detail <product_id>` for unit price; resolve the category via `kalo category search <product keyword>` (pick level=3).
+   - Set the band at ±25% of unit price (e.g. $89 → `--price 70-110`).
+   - 📌 Without category id + price band you cannot pick valid benchmarks — cross-category or cross-price comparisons poison the conclusion.
+2. **Collect industry data**
+   - `kalo category detail <category_id>` for the category baseline (GMV, growth rate, channel mix). Always read the product's growth against the category's (e.g. "product -40.9% vs category -6.9% — falling much faster than the market").
+   - `kalo product rank --category <category_id> --price <min-max>` for the same-category, same-band leaderboard (top 20-30).
+   - `kalo product detail <id1> <id2> ...` in one call for the top 5-10 benchmarks. At least 5 samples.
+   - 📌 A leaderboard alone is not collection — you need detail data on the benchmarks.
+3. **Assess relative position**: the product vs same-band mean/median vs the top 3-5, expressed as a relative position ("X% above average", "in the top Y%").
+4. **Report**: every metric carries its comparison basis.
+   - ✅ "Unit price $89 vs $75 same-band average — priced 15% high, but sales growth still beats the mean, so the price can hold."
+   - ❌ "$89 is high, cut the price." (no basis)
 
-**禁止**：不带 `--category` 或 `--price` 拉 rank 选对标；仅凭绝对值判断「偏高/偏低/不足」；只拿榜单就开始分析；跳过类目大盘对比就断言「衰退/增长」。
+**Never**: pull rank without `--category` or `--price` to pick benchmarks; call anything "high/low/insufficient" from absolute values alone; start analyzing off the leaderboard only; declare "declining/growing" without the category baseline.
 
-## 2. 达人诊断（creator-diagnosis）
+## 2. Creator diagnosis (creator-diagnosis)
 
-**触发**：「分析 @某达人」「这个账号的涨粉/带货策略」「适不适合带货」等聚焦**单一达人**的场景。找多个候选达人用 playbook 4。
+**Triggers**: "analyze @creator", "what's this account's growth/selling strategy", "are they a good fit" — anything focused on a **single creator**. To find candidates use playbook 4.
 
-**前置检查**：需要达人 id、@handle 或「名称+地区」之一。没有就追问一次；用户不提供则给通用建议，并在开头声明「⚠️ 未获取到具体账号数据，以下为通用建议」。禁止反复追问或拒绝回答。
+**Precondition**: you need a creator id, an @handle, or a name + region. Ask once if you have none; if the user still doesn't provide one, give generic advice prefixed with "⚠️ No account data retrieved — the following is generic advice". Do not keep asking, and do not refuse to answer.
 
-**强制四步法：**
+**Mandatory four steps:**
 
-1. **确定类目 id 和粉丝量级**：`kalo creator detail <id|@handle>` 取粉丝数（handle 匹配是模糊的，核对返回的 creator_handle）；类目用 `kalo category search <主营品类关键词>`。粉丝量级取同量级区间（如 50 万粉 → `--followers 300000-1000000`）。
-2. **行业数据采集**：`kalo creator rank --category <类目id> --followers <min-max>` 拉同类目同量级榜单（Top 20-30），再 `kalo creator detail <id1> <id2> ...` 取 Top 5-10 个对标达人详情，至少 5 个样本。
-3. **相对位置评估**：GPM、视频/直播收入结构、观看数、互动率等逐项对比平均值和头部。
-4. **结论输出**：必须带对比依据。
-   - ✅ 「GPM $4.2，同量级平均 $2.8，变现效率高于平均 50%，但与头部（$9+）仍有 1 倍差距」
+1. **Pin down category id and follower tier**: `kalo creator detail <id|@handle>` for follower count (handle matching is fuzzy — verify the returned `creator_handle`); resolve the category with `kalo category search <main product keyword>`. Use the matching tier (e.g. 500K followers → `--followers 300000-1000000`).
+2. **Collect industry data**: `kalo creator rank --category <category_id> --followers <min-max>` for the same-category, same-tier leaderboard (top 20-30), then `kalo creator detail <id1> <id2> ...` for the top 5-10 benchmarks. At least 5 samples.
+3. **Assess relative position**: GPM, video vs livestream revenue mix, views, engagement rate — each against the mean and the top performers.
+4. **Report** with comparison basis.
+   - ✅ "GPM $4.2 vs $2.8 tier average — monetizing 50% above average, but still 2x behind the top tier ($9+)."
 
-推荐输出格式：
+Suggested output format:
 
-| 指标 | 诊断达人 | 同类目平均 | 头部对标 | 相对位置 |
-|------|---------|-----------|---------|---------|
+| Metric | This creator | Category average | Top benchmark | Relative position |
+|--------|--------------|------------------|---------------|-------------------|
 
-**禁止**：不带 `--category` 或 `--followers` 拉 rank 选对标；10 万粉和 100 万粉直接对比；仅凭绝对值下结论。
+**Never**: pull rank without `--category` or `--followers` to pick benchmarks; compare a 100K-follower account against a 1M one; conclude from absolute values alone.
 
-## 3. 类目选品 / 市场调研（product-discovery）
+## 3. Category sourcing / market research (product-discovery)
 
-**触发**：「TOP N 商品/店铺」「某类目分析」「选品方案/机会」「蓝海/价格带」等**类目级**全景调研。给某品牌/店铺做选品也算类目级调研，不是诊断那家店。
+**Triggers**: "top N products/shops", "analyze category X", "sourcing plan / opportunities", "blue ocean / price bands" — **category-level** landscape research. Sourcing for a given brand or shop is still category-level research, not a diagnosis of that shop.
 
-**标准查询链：**
+**Standard query chain:**
 
-1. **类目定位**：`kalo category search <关键词>`。
-2. **类目体检（选品/机会类必做，别拿到 id 就直奔 product rank）**：`kalo category detail <id1> <id2> ...` 取类目大盘——GMV、增长率、活跃商品数、渠道结构（直播/视频/商城收入拆分）、收入趋势。先在类目层定位「规模够大 + 增长快」的子类目，再决定对哪几个拉榜单；也可 `kalo category rank --sort revenue_growth_rate --level 2`（或 3）直接挑高增长子类目。
-3. **榜单**：`kalo product rank --category <id> --sort revenue --limit 100`。热销榜按 `revenue`，销量榜按 `sales_volumn`，潜力榜按 `revenue_growth_rate`。
-4. **批量详情**：全部商品 id 一次性 `kalo product detail <id1> <id2> ...`。店铺名等店铺字段不在商品数据里，看到空值不是 bug——detail 返回的是 shop id（外键），店铺信息走下一步。
-5. **店铺聚合与详情**：按 shop id 归组，`kalo shop detail <id1> ... <id30>` 一次取回店铺名、收入拆分、top 商品，再按 shop id 合并。
-6. **价格带选品**：每个价格带**分别**调用 `kalo product rank --price 50-70`、`--price 70-90` …（rank 默认全价格排序，只查一次再手动切片会偏向高客单），每带至少 Top 20-50，再接 detail 流程。
+1. **Resolve the category**: `kalo category search <keyword>`.
+2. **Category health check** (required for sourcing/opportunity work — don't jump straight to `product rank` the moment you have an id): `kalo category detail <id1> <id2> ...` for the baseline — GMV, growth rate, active product count, channel mix (livestream/video/mall revenue split), revenue trend. Identify "large enough + growing fast" subcategories at the category layer first, then decide which ones to pull leaderboards for. `kalo category rank --sort revenue_growth_rate --level 2` (or 3) also works to pick high-growth subcategories directly.
+3. **Leaderboard**: `kalo product rank --category <id> --sort revenue --limit 100`. Best-sellers by `revenue`, unit volume by `sales_volumn`, risers by `revenue_growth_rate`.
+4. **Batch details**: all product ids in a single `kalo product detail <id1> <id2> ...`. Shop fields such as shop name are not in product data — an empty value there is not a bug; detail returns a shop id (foreign key), and shop info comes from the next step.
+5. **Shop aggregation and details**: group by shop id, then `kalo shop detail <id1> ... <id30>` in one call for shop names, revenue splits and top products, and join back on shop id.
+6. **Price-band sourcing**: call each band **separately** — `kalo product rank --price 50-70`, `--price 70-90`, … (rank sorts across all prices by default, so one query sliced by hand skews toward high tickets). Take at least the top 20-50 per band, then run the detail flow.
 
-**输出要求**：报告必须有类目层一节（子类目 GMV/增长率/渠道结构对比，来自步骤 2），点出哪些子类目规模大、增长快，再下钻到商品；光有商品榜没有类目视角 = 漏了上半层。建议要有数据支撑，禁止编造数字。
+**Report requirements**: include a category-layer section (subcategory GMV / growth / channel mix from step 2) calling out which subcategories are large and which are growing, before drilling down to products. Product leaderboards with no category view means the top half of the analysis is missing. Back recommendations with data — never invent numbers.
 
-**禁止**：跳过类目层直接对大类按 revenue 拉榜（高客单小众品会被误当「机会」）；在商品数据上找店铺名；把 50 个 id 拆成 5 批调 detail；不指定价格带就回答「价格带分析」。
+**Never**: skip the category layer and rank a broad category by revenue (niche high-ticket items get mistaken for "opportunities"); look for shop names in product data; split 50 ids into 5 detail calls; answer a "price band analysis" without specifying bands.
 
-## 4. 达人筛选 / 推荐（creator-search）
+## 4. Creator search / recommendation (creator-search)
 
-**触发**：「找达人合作」「推荐适合 X 的达人」「按粉丝量/类目筛达人」等从达人池**挑候选**的场景。诊断已知达人用 playbook 2。
+**Triggers**: "find creators to work with", "recommend creators for X", "filter creators by follower count/category" — picking **candidates** from the creator pool. To diagnose a known creator use playbook 2.
 
-**强制三步法：**
+**Mandatory three steps:**
 
-1. **类目定位**（必须第一步）：`kalo category search <产品关键词>`，多品类就多搜几个关键词收集全部类目 id。📌 禁止不指定类目直接筛达人，也禁止凭产品名猜类目 id。
-2. **条件筛选**：`kalo creator rank --category <id> --followers <min-max> --revenue <min-max> --engagement HIGH --type INDEPENDENT`
-   - **默认 `--type INDEPENDENT`**（过滤品牌自营账号），除非用户明确要看自营账号。
-   - 「视频质量高」→ `--engagement HIGH` 或 `--sort video_revenue` / `--sort content_views`。
-   - 排序：总收入 `revenue`（默认）、视频收入 `video_revenue`（视频合作）、观看 `content_views`（内容质量）、增长 `revenue_growth_rate`（成长性）。
-   - 需要大量候选时用 `--page` 翻页。
-3. **质量评估与整理**：提取粉丝数、GMV、视频收入、观看数、互动率，按用户要求二次筛选，产出含关键指标的推荐清单。
+1. **Resolve the category** (always first): `kalo category search <product keyword>`; for multi-category products, search several keywords and collect all ids. 📌 Never filter creators without a category, and never guess a category id from a product name.
+2. **Filter**: `kalo creator rank --category <id> --followers <min-max> --revenue <min-max> --engagement HIGH --type INDEPENDENT`
+   - **Default to `--type INDEPENDENT`** (filters out brand-owned accounts) unless the user explicitly wants those.
+   - "High-quality video" → `--engagement HIGH`, or `--sort video_revenue` / `--sort content_views`.
+   - Sorting: total revenue `revenue` (default), video revenue `video_revenue` (video partnerships), views `content_views` (content quality), growth `revenue_growth_rate` (upside).
+   - Use `--page` when you need a deep candidate pool.
+3. **Evaluate and compile**: pull follower count, GMV, video revenue, views and engagement rate; apply the user's secondary filters; deliver a shortlist with those metrics.
 
-**输出要求**：展示类目搜索过程和选中的类目 id、说明筛选条件、清单带关键指标。用户要「履约率」等不存在的字段时，明确说明 KaloData 不提供，禁止声称可以获取。
+**Report requirements**: show the category search and the ids you settled on, state the filters used, and include key metrics in the shortlist. When asked for fields that don't exist (e.g. fulfillment rate), say plainly that KaloData doesn't provide them — never claim you can get them.
 
-## 5. 爆款视频方法论（video-script）
+## 5. Viral video methodology (video-script)
 
-**触发**：「视频脚本」「如何拍容易火」「爆款视频特征」「拍摄建议」等需要先看爆款数据再给建议的场景。单纯查榜单直接用 `kalo video rank`。
+**Triggers**: "video script", "how do I make one that takes off", "what do viral videos have in common", "shooting advice" — anything that needs viral data before advice. For a plain leaderboard lookup just use `kalo video rank`.
 
-**强制三步法：**
+**Mandatory three steps:**
 
-1. **爆款采集**：`kalo video rank --category <id> --region <市场> --range last30Day` 取 Top 10-20，`kalo video detail <id1> <id2> ...` 取至少 5 个样本的完整指标（观看、点赞、评论、分享、收入、广告 ROAS、趋势）。⚠️ KaloData 不提供视频脚本/字幕内容——结构分析基于标题、时长、互动与经营指标；需要逐镜头拆解时请用户提供视频链接自行观看。📌 没有爆款数据 = 不给拍摄建议。
-2. **要素提炼与脚本生成**：分析共同特征（开场钩子、视觉冲击点、演示方式、情感共鸣、行动号召），产出 3 种高转化脚本模板（表格：时间轴、镜头、画面内容、文案/旁白）：问题-解决方案型、对比测试型、开箱+场景型。每个模板附 1-3 条参考视频（来自步骤 1）。
-3. **完整策略**：拍摄技术（镜头/灯光/背景/音乐）、文案策略（标题公式、5-8 个标签）、发布策略（时间/频率/A-B 测试）、数据追踪基准（完播率>50%、点赞率>5%、点击率>3%、转化率>2%）。
+1. **Collect viral videos**: `kalo video rank --category <id> --region <market> --range last30Day` for the top 10-20, then `kalo video detail <id1> <id2> ...` for full metrics on at least 5 samples (views, likes, comments, shares, revenue, ad ROAS, trend). ⚠️ KaloData does not provide video scripts or captions — structural analysis is based on titles, duration, engagement and commercial metrics; for shot-by-shot breakdowns, ask the user for video links to watch themselves. 📌 No viral data = no shooting advice.
+2. **Extract patterns and generate scripts**: analyze shared traits (opening hook, visual payoff, demo style, emotional beat, call to action), then produce 3 high-conversion script templates (table: timeline, shot, visual, copy/voiceover) — problem-solution, comparison test, and unboxing + use case. Attach 1-3 reference videos (from step 1) to each template.
+3. **Full strategy**: production technique (shots/lighting/background/music), copy strategy (title formulas, 5-8 hashtags), publishing strategy (timing/cadence/A-B tests), and tracking benchmarks (completion rate >50%, like rate >5%, CTR >3%, conversion >2%).
 
-**禁止**：未经爆款数据分析就给拍摄建议；忽略目标市场和类目特点。输出不超过 3000 字。
+**Never**: give shooting advice without viral data analysis; ignore the target market and category. Keep output under 3000 words.
 
-## 6. 分镜脚本创作（script-creation）
+## 6. Shot-by-shot script writing (script-creation)
 
-**触发**：「写一个拍摄脚本」「分镜脚本」「可直接开拍的脚本」——产出给运营和拍摄团队的分场景脚本。**本 playbook 不调用 API，纯创作**；需要先做爆款分析时配合 playbook 5。
+**Triggers**: "write me a shooting script", "storyboard", "a script we can shoot as-is" — a scene-by-scene script for the operations and production team. **This playbook calls no API — it is pure writing**; pair it with playbook 5 when viral analysis is needed first.
 
-**动笔前确定**（缺失按默认或问用户一次）：时长（默认 15-30s）、目标市场（决定模特形象与台词语言）、产品卖点与可用素材图、参考爆款、用户额外指令。优先级：用户指令 > 参考爆款 > 产品卖点。
+**Settle before writing** (use the default or ask once if missing): duration (default 15-30s), target market (drives talent casting and dialogue language), product selling points and available asset images, reference viral videos, any extra user instructions. Priority: user instructions > reference videos > selling points.
 
-**创作要求：**
+**Writing requirements:**
 
-- 字段标签和描述用与用户沟通的语言；**台词用目标市场当地语言**，写成本地真人 UGC 口语，不要翻译腔。
-- 模特形象贴合当地市场（族裔、年龄段、气质、服装）。
-- 只按已提供素材的角度描述产品（只有正面图就不拍背面/内部）；品牌标配元素（吊牌、Logo 等）可展示但要锚定品牌名。
-- 借鉴参考爆款的钩子节奏与转化点，不逐字复刻台词或镜头（防平台判重）。
-- 台词按「时长 - 2 秒」规划留 buffer；时间轴总长严格等于设定时长、场景无缝衔接。
-- 引用素材图写 `@Image N`。
+- Field labels and descriptions in the language you're using with the user; **dialogue in the target market's local language**, written as native UGC speech, not translationese.
+- Cast talent that fits the local market (ethnicity, age range, vibe, wardrobe).
+- Describe the product only from angles the provided assets cover (front-only image → don't shoot the back or interior). Standard brand elements (hang tags, logos) can appear but must be anchored to the brand name.
+- Borrow the hook rhythm and conversion beats of the reference videos; never copy dialogue or shots verbatim (platform duplicate detection).
+- Budget dialogue for "duration - 2 seconds" to leave buffer; the timeline must total exactly the target duration with seamless scene transitions.
+- Reference asset images as `@Image N`.
 
-**输出格式**（纯文本，不要 JSON、不要代码块）：
+**Output format** (plain text — no JSON, no code fences):
 
 ```
-Style & Color: 一句话整体美学风格
-Scene: 一句话环境描述
-Subject: 1-3 句人物+产品描述（引用素材 @Image N）
-Camera & Framing: 一句话运镜节奏
+Style & Color: one line on the overall aesthetic
+Scene: one line on the environment
+Subject: 1-3 sentences on talent + product (cite assets as @Image N)
+Camera & Framing: one line on camera rhythm
 
 Action Timeline:
 
-[Scene 1: 场景名]
-Time: Xs-Ys | Shot: 景别 | Location: 地点
-VISUAL: 画面描述
-AUDIO (说话人): "台词（当地语言）"
-TALENT ACTION: 演员动作
+[Scene 1: name]
+Time: Xs-Ys | Shot: shot size | Location: place
+VISUAL: what's on screen
+AUDIO (speaker): "dialogue (local language)"
+TALENT ACTION: what the talent does
 ...
 ```
 
-无台词场景省略 AUDIO 行。默认不加字幕/文字浮层（用户明确要求才加）。总输出不超过 750 字符。
+Omit the AUDIO line for silent scenes. No captions or text overlays by default (add them only when the user asks). Keep total output under 750 characters.
