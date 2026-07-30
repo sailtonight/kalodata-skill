@@ -16,14 +16,12 @@ import urllib.request
 
 from .config import Config
 from .errors import KaloError
+from .onboarding import NO_KEY_MESSAGE, SETUP_LINES
 
 _RETRIES = 3
 _PARAM_HINTS = ("must be", "invalid", "required", "for input string", "parameter")
 
-AUTH_HELP = [
-    "Run `kalo config set --key <API_KEY>` to authenticate",
-    "Or set KALODATA_API_KEY in the environment",
-]
+AUTH_HELP = SETUP_LINES
 
 
 class _Retryable(Exception):
@@ -32,7 +30,7 @@ class _Retryable(Exception):
 
 def _require_auth(cfg: Config) -> None:
     if not cfg.api_key:
-        raise KaloError("KALODATA_API_KEY is not configured", kind="auth", help_lines=AUTH_HELP)
+        raise KaloError(NO_KEY_MESSAGE, kind="auth", help_lines=AUTH_HELP)
 
 
 def _headers(cfg: Config, extra: dict | None) -> dict:

@@ -25,10 +25,24 @@ All examples below write `kalo` as shorthand for `python3 <this-skill-dir>/scrip
 Output is TOON (token-oriented) on stdout; add `--json` to any command for raw JSON.
 Errors are structured on stdout with actionable `help:` lines. Exit codes: 0 ok, 1 error, 2 usage.
 
-## Auth
+## Setup — check this before the first query
 
-Requires `KALODATA_API_KEY` (env or `kalo config set --key ...`), sent as the `secret-key` header.
-Check with `kalo config`.
+Every command needs a KaloData API key (sent as the `secret-key` header). Before the first
+query of a session run `kalo config` and look at `api_key`. If it says `missing`, stop — don't
+guess a key and don't retry the query. Walk the user through these three steps and wait:
+
+1. **Get a key** — sign in at https://www.kalodata.com/open-center/account and click
+   *generate key*. No account yet? Register at https://www.kalodata.com/open-center/home first.
+   If they already call the KaloData API on credit-based billing, that same key works here —
+   no new key needed.
+2. **Save it** — `kalo config set --key <API_KEY>` (stored in `~/.config/kalodata/config.toml`,
+   mode 0600), or set `KALODATA_API_KEY` in the environment.
+3. **Credits** — every query spends KaloData credits: 0.2–0.4 for a basic lookup, 1–2 for an
+   analysis/diagnosis playbook. `kalo credit` shows the remaining quota; top up at
+   https://www.kalodata.com/pricing.
+
+Once the key is set, mention the credit cost when a request would fan out into many calls
+(a playbook, or dozens of detail lookups), so the spend isn't a surprise.
 
 ## Commands
 

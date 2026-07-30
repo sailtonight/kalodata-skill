@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 from .. import config as config_mod
-from .. import render, validate
+from .. import onboarding, render, validate
 from ..core import Command, Flag
 from ..errors import UsageError
 
@@ -26,7 +26,7 @@ def config_show(cfg, opts, args):
         return 0
     render.emit_detail("config", data)
     if not cfg.authed:
-        render.emit_help(["Run `kalo config set --key <API_KEY>`"])
+        render.emit_help(onboarding.SETUP_LINES)
     return 0
 
 

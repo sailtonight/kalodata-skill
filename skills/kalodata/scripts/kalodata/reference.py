@@ -10,7 +10,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from . import toon
+from . import onboarding, toon
 from .config import Config
 
 DESCRIPTION = (
@@ -60,7 +60,7 @@ def bin_path() -> str:
 def auth_line(cfg: Config) -> str:
     if cfg.authed:
         return f"auth: ok (key …{cfg.api_key[-4:]})" if len(cfg.api_key) > 4 else "auth: ok"
-    return "auth: not configured — run `kalo config set --key <API_KEY>`"
+    return "auth: not configured — no query will run until a key is set (see setup below)"
 
 
 def home_text(cfg: Config) -> str:
@@ -69,6 +69,12 @@ def home_text(cfg: Config) -> str:
         f"description: {DESCRIPTION}",
         auth_line(cfg),
         f"defaults: region {cfg.region} · range last30Day · currency {cfg.currency} · language {cfg.language}",
+    ]
+    if not cfg.authed:
+        lines.append("")
+        lines.append(f"setup[{len(onboarding.SETUP_LINES)}]:")
+        lines.extend(f"  {ln}" for ln in onboarding.SETUP_LINES)
+    lines += [
         "",
         toon.tabular("commands", [{"command": c, "what": w} for c, w in COMMAND_TABLE], ["command", "what"]),
         "",
