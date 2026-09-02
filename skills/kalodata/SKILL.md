@@ -38,7 +38,7 @@ guess a key and don't retry the query. Walk the user through these three steps a
 2. **Save it** — `kalo config set --key <API_KEY>` (stored in `~/.config/kalodata/config.toml`,
    mode 0600), or set `KALODATA_API_KEY` in the environment.
 3. **Credits** — every query spends KaloData credits: 0.2–0.4 for a basic lookup, 1–2 for an
-   analysis/diagnosis playbook. `kalo credit` shows the remaining quota; top up at
+   analysis/diagnosis playbook. Check the balance and top up at
    https://www.kalodata.com/pricing.
 
 Once the key is set, mention the credit cost when a request would fan out into many calls
@@ -62,7 +62,6 @@ Once the key is set, mention the credit cost when a request would fan out into m
 | `kalo category rank` | top categories; --level 1\|2\|3 |
 | `kalo category detail <id...>` | category revenue split + trend |
 | `kalo category search <kw>` | resolve category ids by keyword |
-| `kalo credit` | remaining API credit quota per endpoint group |
 | `kalo config` | show/set credentials and defaults |
 
 ## Conventions
