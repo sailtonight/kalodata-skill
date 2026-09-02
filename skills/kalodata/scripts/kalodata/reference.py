@@ -34,7 +34,6 @@ COMMAND_TABLE = [
     ("kalo category rank", "top categories; --level 1|2|3"),
     ("kalo category detail <id...>", "category revenue split + trend"),
     ("kalo category search <kw>", "resolve category ids by keyword"),
-    ("kalo credit", "remaining API credit quota per endpoint group"),
     ("kalo config", "show/set credentials and defaults"),
 ]
 

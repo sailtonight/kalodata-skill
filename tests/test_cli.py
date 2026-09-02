@@ -131,20 +131,6 @@ def test_detail_full_trend(capsys, env):
     assert "revenue_trend[2]: 10,30" in out
 
 
-def test_credit_usage(capsys, env):
-    env.responses["/credit/usage"] = {
-        "success": True,
-        "data": [
-            {"type": "shop_creator_rank", "total": 30000, "remain": 29990, "endTime": 1786703233189},
-            {"type": "detail", "total": 1000, "remain": 500, "endTime": 1786703233189},
-        ],
-    }
-    code, out = run(capsys, "credit")
-    assert code == 0
-    assert "credits[2]{type,remain,total,expires}:" in out
-    assert "shop_creator_rank,29990,30000,2026-08-14" in out
-
-
 def test_images_flag_adds_column(capsys, env):
     env.responses["/tiktok/shop/rank"] = {
         "success": True,
@@ -250,5 +236,5 @@ def test_home_lists_all_commands(capsys, monkeypatch, tmp_path):
     monkeypatch.setenv("KALODATA_CONFIG_DIR", str(tmp_path))
     code, out = run(capsys)
     assert code == 0
-    assert "commands[16]" in out
+    assert "commands[15]" in out
     assert "kalo config" in out

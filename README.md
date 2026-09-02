@@ -21,7 +21,7 @@ export KALODATA_API_KEY=<token>
 
 Or persist with `kalo config set --key <token>`. The token is sent as the `secret-key` header. Optional: `KALODATA_BASE_URL` (defaults to production), `KALODATA_REGION` / `KALODATA_LANGUAGE` / `KALODATA_CURRENCY`.
 
-Queries spend KaloData credits — 0.2–0.4 for a basic lookup, 1–2 for an analysis/diagnosis. `kalo credit` shows the remaining quota; top up at [kalodata.com/pricing](https://www.kalodata.com/pricing). Run `kalo` with no key configured and it prints this same setup guide.
+Queries spend KaloData credits — 0.2–0.4 for a basic lookup, 1–2 for an analysis/diagnosis. Check the balance and top up at [kalodata.com/pricing](https://www.kalodata.com/pricing). Run `kalo` with no key configured and it prints this same setup guide.
 
 ## Usage
 
