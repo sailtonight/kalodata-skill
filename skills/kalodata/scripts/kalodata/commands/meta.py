@@ -20,6 +20,7 @@ def config_show(cfg, opts, args):
         "api_key": masked,
         "base_url": cfg.base_url,
         "defaults": f"region {cfg.region} · language {cfg.language} · currency {cfg.currency}",
+        "update_check": "on" if cfg.update_check else "off",
     }
     if opts.get("json"):
         render.out(json.dumps(data, ensure_ascii=False))
@@ -37,6 +38,7 @@ def config_set(cfg, opts, args):
         "region": opts.get("region"),
         "language": opts.get("language"),
         "currency": opts.get("currency"),
+        "update_check": opts.get("update_check"),
     }
     updates = {k: v for k, v in updates.items() if v is not None}
     if not updates:
@@ -44,6 +46,8 @@ def config_set(cfg, opts, args):
             "nothing to set",
             ["usage: kalo config set --key <API_KEY> [--region US]"],
         )
+    if "update_check" in updates:
+        updates["update_check"] = "true" if updates["update_check"] == "on" else "false"
     if "region" in updates:
         region = updates["region"].upper()
         if region not in validate.REGIONS:
@@ -73,6 +77,12 @@ COMMANDS = [
             Flag("--region", "default region", metavar="REGION"),
             Flag("--language", "default language", metavar="LANG"),
             Flag("--currency", "default currency", metavar="CUR"),
+            Flag(
+                "--update-check",
+                "upgrade notice from GitHub tags (default on)",
+                choices=("on", "off"),
+                metavar="on|off",
+            ),
         ],
         examples=["kalo config set --key <token> --region US"],
     ),

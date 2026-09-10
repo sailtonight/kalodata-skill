@@ -10,7 +10,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from . import onboarding, toon
+from . import __version__, onboarding, toon
 from .config import Config
 
 DESCRIPTION = (
@@ -21,7 +21,10 @@ DESCRIPTION = (
 # (command, what) — the `what` column is deliberately terse; details live in --help
 COMMAND_TABLE = [
     ("kalo product rank", "top products; --category --keyword --price --launch --shop --creator"),
-    ("kalo product detail <id...>", "price range, shop id, revenue trend"),
+    ("kalo product detail <id...>", "price range, shop id, revenue trend, description"),
+    ("kalo product comments <id...>", "review insight: pain points, positives, scenarios (1 credit)"),
+    ("kalo product specs <id...>", "selling points + spec attributes; --lang zh-CN to translate"),
+    ("kalo product images <id...>", "product gallery image URLs (expire in ~5 min)"),
     ("kalo shop rank", "top shops; --type BRAND|RETAILER --keyword"),
     ("kalo shop detail <id...>", "revenue split, top product ids"),
     ("kalo creator rank", "top creators; --followers --engagement --product"),
@@ -29,11 +32,14 @@ COMMAND_TABLE = [
     ("kalo creator images <id...>", "avatar URLs for a batch of creator ids"),
     ("kalo video rank", "top shoppable videos; --product --creator --keyword --ai"),
     ("kalo video detail <id...>", "full video metrics + trend"),
+    ("kalo video url <id...>", "playable mp4 URLs (expire in ~5 min)"),
     ("kalo live rank", "top livestreams; --keyword"),
     ("kalo live detail <id...>", "viewers, GPM, top product ids"),
     ("kalo category rank", "top categories; --level 1|2|3"),
     ("kalo category detail <id...>", "category revenue split + trend"),
     ("kalo category search <kw>", "resolve category ids by keyword"),
+    ("kalo credit", "remaining credit balance for this key"),
+    ("kalo credit logs", "what credits were spent on; --range --type --page"),
     ("kalo config", "show/set credentials and defaults"),
 ]
 
@@ -43,6 +49,7 @@ CONVENTIONS = [
     "yyyy-MM, or yyyy-MM-dd~yyyy-MM-dd",
     'Numeric ranges are "min-max" with both ends numeric, e.g. --revenue 1000-50000',
     "Add --images on product/shop/creator rank or product detail to include image URLs",
+    "Signed media URLs (product images, creator images, video url) expire ~5 minutes after the call",
     "Run `kalo <command> --help` for per-command flags and examples",
 ]
 
@@ -64,7 +71,7 @@ def auth_line(cfg: Config) -> str:
 
 def home_text(cfg: Config) -> str:
     lines = [
-        f"bin: {bin_path()}",
+        f"bin: {bin_path()} (kalo {__version__})",
         f"description: {DESCRIPTION}",
         auth_line(cfg),
         f"defaults: region {cfg.region} · range last30Day · currency {cfg.currency} · language {cfg.language}",
