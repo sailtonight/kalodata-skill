@@ -14,6 +14,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from . import __version__
 from .config import Config
 from .errors import KaloError
 from .onboarding import NO_KEY_MESSAGE, SETUP_LINES
@@ -38,6 +39,7 @@ def _headers(cfg: Config, extra: dict | None) -> dict:
         "Content-Type": "application/json;charset=UTF-8",
         "secret-key": cfg.api_key,
         "source-type": "SKILL",
+        "skill-version": __version__,
     }
     if extra:
         h.update(extra)

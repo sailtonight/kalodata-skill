@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 
-from . import __version__, config, reference, render
+from . import __version__, config, reference, render, update
 from .commands import ALIASES, COMMANDS, DEFAULT_SUB
 from .core import command_help, parse_args
 from .errors import KaloError, UsageError
@@ -46,6 +46,7 @@ def _resolve(argv: list[str]):
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     cfg = config.load()
+    update.check(cfg)  # stderr-only upgrade hint; never raises
 
     if not argv or argv[0] in ("--help", "-h", "help"):
         render.out(reference.home_text(cfg))

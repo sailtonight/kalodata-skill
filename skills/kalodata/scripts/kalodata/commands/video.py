@@ -82,6 +82,27 @@ def detail(cfg, opts, ids):
     )
 
 
+def url(cfg, opts, ids):
+    def fetch(video_id):
+        return api.request(cfg, "/tiktok/video/url", {"video_id": video_id})
+
+    def extract(video_id, data):
+        link = (data or {}).get("video_url")
+        if not link:
+            return []
+        return [{"video_id": (data or {}).get("video_id") or video_id, "video_url": link}]
+
+    return common.run_url_batch(
+        cfg,
+        opts,
+        ids,
+        noun="video_urls",
+        fetch=fetch,
+        extract=extract,
+        fields=("video_id", "video_url"),
+    )
+
+
 COMMANDS = [
     Command(
         path="video rank",
@@ -116,5 +137,14 @@ COMMANDS = [
         pos_min=1,
         pos_max=None,
         examples=["kalo video detail 7301234567890 --range last90Day"],
+    ),
+    Command(
+        path="video url",
+        summary="Playable mp4 URLs for one or more videos (signed, ~5 min expiry)",
+        handler=lambda cfg, opts, args: url(cfg, opts, args),
+        positional="video_id",
+        pos_min=1,
+        pos_max=None,
+        examples=["kalo video url 7640183187024530710"],
     ),
 ]

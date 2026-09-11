@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime
 import json
 from concurrent.futures import ThreadPoolExecutor
 
@@ -11,13 +12,14 @@ from ..core import Flag
 from ..errors import KaloError, UsageError
 
 DETAIL_CONCURRENCY = 5  # client-side batching; upstream detail endpoints take one id
+URL_EXPIRY_NOTE = "Signed URLs expire ~5 minutes after this call — use them now, don't cache them"
 
 # ---------------------------------------------------------------- flag presets
 
 
 def common_flags(tier: str, default_range: str = "last30Day") -> list[Flag]:
     return [
-        Flag("--region", f"region code ({'|'.join(validate.REGIONS)})", metavar="REGION"),
+        region_flag(),
         Flag(
             "--range",
             f"date window: {validate.tier_hint(tier)}",
@@ -25,7 +27,7 @@ def common_flags(tier: str, default_range: str = "last30Day") -> list[Flag]:
             metavar="RANGE",
         ),
         Flag("--currency", "currency code (default from config, USD)", metavar="CUR"),
-        Flag("--lang", "language code (default from config, en-US)", metavar="LANG"),
+        lang_flag(),
     ]
 
 
@@ -43,6 +45,14 @@ def category_flag() -> Flag:
     return Flag(
         "--category", "category id filter (repeatable)", kind="multi", default=[], metavar="ID"
     )
+
+
+def region_flag() -> Flag:
+    return Flag("--region", f"region code ({'|'.join(validate.REGIONS)})", metavar="REGION")
+
+
+def lang_flag() -> Flag:
+    return Flag("--lang", "language code (default from config, en-US)", metavar="LANG")
 
 
 def images_flag() -> Flag:
@@ -64,12 +74,18 @@ def apply_images(opts: dict, body: dict, image_field: str) -> None:
 # ---------------------------------------------------------------- body helpers
 
 
-def base_body(cfg: Config, opts: dict, tier: str, default_range: str = "last30Day") -> dict:
+def region_of(cfg: Config, opts: dict) -> str:
+    """Validated upper-case region — the only body field some endpoints take."""
     region = (opts.get("region") or cfg.region).upper()
     if region not in validate.REGIONS:
         raise UsageError(
             f"unknown region '{region}'", [f"valid regions: {', '.join(validate.REGIONS)}"]
         )
+    return region
+
+
+def base_body(cfg: Config, opts: dict, tier: str, default_range: str = "last30Day") -> dict:
+    region = region_of(cfg, opts)
     rng = opts.get("range") or default_range
     err = validate.check_date_range(rng, tier)
     if err:
@@ -138,6 +154,39 @@ _NUMERIC_HINTS = (
     "duration",
     "rank",
 )
+
+
+def ms_date(ms) -> str:
+    """Unix milliseconds -> yyyy-MM-dd (upstream timestamps are all ms)."""
+    try:
+        return datetime.datetime.fromtimestamp(
+            float(ms) / 1000, tz=datetime.timezone.utc
+        ).strftime("%Y-%m-%d")
+    except (TypeError, ValueError):
+        return str(ms)
+
+
+def flatten_rich_text(value) -> str:
+    """Upstream rich text is nested blocks ({type,text,sub:[{t}]}) — collapse to plain text."""
+    if isinstance(value, str):
+        return value.strip()
+    chunks: list[str] = []
+
+    def walk(node):
+        if isinstance(node, str):
+            chunks.append(node)
+        elif isinstance(node, list):
+            for item in node:
+                walk(item)
+        elif isinstance(node, dict):
+            text = node.get("text") or node.get("t")
+            if isinstance(text, str):
+                chunks.append(text)
+            else:
+                walk(node.get("sub"))
+
+    walk(value)
+    return " ".join(" ".join(chunks).split())
 
 
 def coerce_numbers(row: dict) -> dict:
@@ -265,6 +314,62 @@ def run_rank(
     return 0
 
 
+def gather(fetch, ids: list[str]) -> list[tuple]:
+    """Run fetch(id) over ids -> [(id, data, error)]; upstream detail endpoints take one id."""
+
+    def one(entity_id: str):
+        try:
+            return entity_id, fetch(entity_id), None
+        except KaloError as e:
+            return entity_id, None, e
+
+    if len(ids) == 1:
+        return [one(ids[0])]
+    with ThreadPoolExecutor(max_workers=DETAIL_CONCURRENCY) as pool:
+        return list(pool.map(one, ids))
+
+
+def run_url_batch(
+    cfg: Config,
+    opts: dict,
+    ids: list[str],
+    *,
+    noun: str,
+    fetch,  # fetch(id) -> dict
+    extract,  # extract(id, data) -> list[dict] of table rows
+    fields: tuple,
+) -> int:
+    """Signed-URL endpoints: one table across ids, expiry called out (URLs die in ~5 min)."""
+    results = gather(fetch, ids)
+    rows: list[dict] = []
+    errors = []
+    for entity_id, data, err in results:
+        if err is not None:
+            errors.append((entity_id, err))
+            continue
+        rows.extend(extract(entity_id, data))
+
+    if opts.get("json"):
+        payload = {"rows": rows}
+        if errors:
+            payload["errors"] = [{"id": i, "error": str(e)} for i, e in errors]
+        render.out(json.dumps(payload, ensure_ascii=False))
+        return 0 if rows else 1
+
+    for entity_id, err in errors:
+        render.emit_error(f"{noun} {entity_id}: {err}", err.help_lines)
+    if not rows:
+        return 1 if errors else _empty_urls(noun, ids)
+    render.emit_table(noun, rows, fields)
+    render.emit_help([URL_EXPIRY_NOTE])
+    return 0
+
+
+def _empty_urls(noun: str, ids: list[str]) -> int:
+    render.emit_empty(noun, f"{len(ids)} id(s)")
+    return 0
+
+
 def run_detail_batch(
     cfg: Config,
     opts: dict,
@@ -275,17 +380,7 @@ def run_detail_batch(
     postprocess=None,  # postprocess(dict, opts, notes) -> dict
     suggestions: tuple = (),
 ) -> int:
-    def one(entity_id: str):
-        try:
-            return entity_id, fetch(entity_id), None
-        except KaloError as e:
-            return entity_id, None, e
-
-    if len(ids) == 1:
-        results = [one(ids[0])]
-    else:
-        with ThreadPoolExecutor(max_workers=DETAIL_CONCURRENCY) as pool:
-            results = list(pool.map(one, ids))
+    results = gather(fetch, ids)
 
     if opts.get("json"):
         payload = [

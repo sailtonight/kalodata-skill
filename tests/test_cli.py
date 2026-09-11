@@ -131,6 +131,217 @@ def test_detail_full_trend(capsys, env):
     assert "revenue_trend[2]: 10,30" in out
 
 
+def test_credit_balance_is_the_bare_default(capsys, env):
+    env.responses["/credit/balance"] = {
+        "success": True,
+        "data": {"totalRemain": 12.8, "mainRemain": 12.8},
+    }
+    code, out = run(capsys, "credit")
+    assert code == 0
+    assert env.requests[0][0] == "/credit/balance"
+    assert "total_remain: 12.8" in out
+    # a main-account key omits subRemain entirely — never report it as a zero balance
+    assert "sub_remain" not in out
+    assert "main-account key" in out
+
+
+def test_credit_balance_sub_account(capsys, env):
+    env.responses["/credit/balance"] = {
+        "success": True,
+        "data": {"totalRemain": 10, "mainRemain": 8, "subRemain": 2},
+    }
+    code, out = run(capsys, "credit", "balance")
+    assert code == 0
+    assert "sub_remain: 2" in out
+    assert "sub-account key" in out
+
+
+def test_credit_logs_range_becomes_dates(capsys, env):
+    env.responses["/credit/logs"] = {
+        "success": True,
+        "data": {
+            "pageNo": 1,
+            "pageSize": 20,
+            "total": 1,
+            "hasNext": False,
+            "data": [
+                {
+                    "gmtCreated": 1786703233189,
+                    "sourceType": "OPEN_API_CALL",
+                    "displayQuantity": -0.5,
+                    "kaloBizName": "kalodata",
+                    "consumerId": 2795912,
+                }
+            ],
+        },
+    }
+    code, out = run(capsys, "credit", "logs", "--range", "2026-08-01~2026-08-31", "--type", "OPEN_API_CALL")
+    assert code == 0
+    body = env.requests[0][2]
+    assert body["startDate"] == "2026-08-01"
+    assert body["endDate"] == "2026-08-31"
+    assert body["sourceType"] == "OPEN_API_CALL"
+    assert "credit_logs[1]{date,type,credits,product,consumer_id}:" in out
+    assert "2026-08-14,OPEN_API_CALL,-0.5,kalodata,2795912" in out
+
+
+def test_credit_logs_empty_explains_scope(capsys, env):
+    env.responses["/credit/logs"] = {
+        "success": True,
+        "data": {"pageNo": 1, "pageSize": 20, "total": 0, "hasNext": False, "data": []},
+    }
+    code, out = run(capsys, "credit", "logs")
+    assert code == 0
+    assert "credit_logs: 0 results" in out
+    assert "top-ups and refunds never appear" in out
+
+
+def test_product_comments(capsys, env):
+    env.responses["/tiktok/product/comment/insight"] = {
+        "success": True,
+        "data": {
+            "product_id": "111",
+            "country_code": "us",
+            "cached_at": "2026-08-26T07:23:16Z",
+            "comment_summary": {"summary": "Loved.", "summary_zh": "喜欢"},
+            "pain_points": [
+                {"view_point": "Runs small", "point_zh": "偏小", "id_list": ["1"]},
+                {"view_point": "Zipper sticks", "point_zh": "拉链", "id_list": ["1", "2", "3"]},
+            ],
+            "positive_points": [{"view_point": "Soft fabric", "id_list": ["1", "2"]}],
+            "usage_scenarios": [{"view_point": "Weddings", "id_list": ["4"]}],
+            "original_comments": [
+                {
+                    "review_id": None,
+                    "sku_specification": "Navy, 14",
+                    "review": {
+                        "review_id": "9",
+                        "rating": "5",
+                        "display_text": "Fits perfectly",
+                        "review_timestamp": "1786703233189",
+                    },
+                }
+            ],
+        },
+    }
+    code, out = run(capsys, "product", "comments", "111", "--region", "PH")
+    assert code == 0
+    body = env.requests[0][2]
+    assert body == {"product_id": "111", "country_code": "ph"}  # no date/currency on this endpoint
+    assert "comments_analyzed: 1" in out
+    # points are ranked by how many reviews back them, zh mirror and uuids dropped
+    assert "pain_points[2]{point,mentions}:" in out
+    assert out.index("Zipper sticks") < out.index("Runs small")
+    assert "summary_zh" not in out
+    assert "Add `--comments`" in out
+
+
+def test_product_comments_raw_list(capsys, env):
+    env.responses["/tiktok/product/comment/insight"] = {
+        "success": True,
+        "data": {
+            "product_id": "111",
+            "comment_summary": {"summary": "ok"},
+            "original_comments": [
+                {
+                    "review": {
+                        "rating": "5",
+                        "display_text": "Fits perfectly",
+                        "review_timestamp": "1786703233189",
+                    },
+                    "sku_specification": "Navy, 14",
+                }
+            ],
+        },
+    }
+    code, out = run(capsys, "product", "comments", "111", "--comments")
+    assert code == 0
+    assert "Fits perfectly" in out
+    assert "2026-08-14" in out
+
+
+def test_product_specs(capsys, env):
+    env.responses["/tiktok/product/analysis"] = {
+        "success": True,
+        "data": {
+            "product_id": "111",
+            "region": "PH",
+            "language": "zh-CN",
+            "highlights": [{"key_word": "纯本地米", "region_text": "Pure Local Rice"}],
+            "attributes": [{"key": "品牌", "value": "Busilak"}],
+        },
+    }
+    code, out = run(capsys, "product", "specs", "111", "--region", "PH", "--lang", "zh-CN")
+    assert code == 0
+    assert env.requests[0][2] == {"product_id": "111", "region": "PH", "language": "zh-CN"}
+    assert "highlights[1]{key_word,region_text}:" in out
+    assert "attributes[1]{key,value}:" in out
+
+
+def test_product_specs_pending_is_actionable(capsys, env):
+    # upstream kicks off generation and fails this call for free
+    env.responses["/tiktok/product/analysis"] = {
+        "success": False,
+        "data": None,
+        "message": "file not found, 0",
+    }
+    code, out = run(capsys, "product", "specs", "111")
+    assert code == 1
+    assert "still being generated" in out
+    assert "not charged" in out
+    assert "Re-run the same command" in out
+
+
+def test_product_images_table(capsys, env):
+    env.responses["/tiktok/product/images"] = {
+        "success": True,
+        "data": {"product_id": "111", "images": ["https://img/a.png", "https://img/b.png"]},
+    }
+    code, out = run(capsys, "product", "images", "111")
+    assert code == 0
+    assert env.requests[0][2] == {"product_id": "111"}
+    assert "product_images[2]{product_id,image_url}:" in out
+    assert "expire" in out  # signed URLs die in ~5 min; agent must not cache them
+
+
+def test_video_url(capsys, env):
+    env.responses["/tiktok/video/url"] = {
+        "success": True,
+        "data": {"video_id": "7", "video_url": "https://vid/7.mp4"},
+    }
+    code, out = run(capsys, "video", "url", "7")
+    assert code == 0
+    assert "video_urls[1]{video_id,video_url}:" in out
+    assert "https://vid/7.mp4" in out
+
+
+def test_product_description_flattened(capsys, env):
+    env.responses["/tiktok/product/detail"] = {
+        "success": True,
+        "data": {
+            "product_id": "111",
+            "product_description": [
+                {"type": "text", "text": "Boost your routine.", "sub": [{"t": "ignored"}]},
+                {"type": "text", "sub": [{"t": "Second block."}]},
+            ],
+        },
+    }
+    code, out = run(capsys, "product", "detail", "111")
+    assert code == 0
+    assert "product_description: Boost your routine. Second block." in out
+
+
+def test_product_description_truncated(capsys, env):
+    env.responses["/tiktok/product/detail"] = {
+        "success": True,
+        "data": {"product_id": "111", "product_description": [{"type": "text", "text": "x" * 900}]},
+    }
+    code, out = run(capsys, "product", "detail", "111")
+    assert code == 0
+    assert "truncated, 900 chars total" in out
+    assert "complete product_description" in out
+
+
 def test_images_flag_adds_column(capsys, env):
     env.responses["/tiktok/shop/rank"] = {
         "success": True,
@@ -236,5 +447,6 @@ def test_home_lists_all_commands(capsys, monkeypatch, tmp_path):
     monkeypatch.setenv("KALODATA_CONFIG_DIR", str(tmp_path))
     code, out = run(capsys)
     assert code == 0
-    assert "commands[15]" in out
+    assert "commands[21]" in out
     assert "kalo config" in out
+    assert "kalo product comments <id...>" in out

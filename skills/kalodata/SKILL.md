@@ -37,9 +37,21 @@ guess a key and don't retry the query. Walk the user through these three steps a
    no new key needed.
 2. **Save it** — `kalo config set --key <API_KEY>` (stored in `~/.config/kalodata/config.toml`,
    mode 0600), or set `KALODATA_API_KEY` in the environment.
-3. **Credits** — every query spends KaloData credits: 0.2–0.4 for a basic lookup, 1–2 for an
-   analysis/diagnosis playbook. Check the balance and top up at
-   https://www.kalodata.com/pricing.
+3. **Credits** — every query spends KaloData credits. Measured costs per call:
+
+   | call | credits |
+   |---|---|
+   | any rank or detail lookup | 0.2 |
+   | `product images` | 0.01 |
+   | `creator images` | 0.1 |
+   | `product specs` | 0.1 |
+   | `video url` | 0.5 |
+   | `product comments` (only when the upstream cache refreshes) | 1 |
+   | `credit balance`, `credit logs` | free |
+
+   Costs were measured against production; rank/detail lookups bill 0.2 flat under this skill's
+   `source-type: SKILL` header. A playbook fans out into many calls, so it lands at 1–2 credits.
+   `kalo credit` shows the remaining balance; top up at https://www.kalodata.com/pricing.
 
 Once the key is set, mention the credit cost when a request would fan out into many calls
 (a playbook, or dozens of detail lookups), so the spend isn't a surprise.
@@ -49,7 +61,10 @@ Once the key is set, mention the credit cost when a request would fan out into m
 | command | what |
 |---|---|
 | `kalo product rank` | top products; --category --keyword --price --launch --shop --creator |
-| `kalo product detail <id...>` | price range, shop id, revenue trend |
+| `kalo product detail <id...>` | price range, shop id, revenue trend, product description |
+| `kalo product comments <id...>` | review insight: pain points, positives, usage scenarios (1 credit per refresh) |
+| `kalo product specs <id...>` | selling points (highlights) and spec attributes; --lang zh-CN translates |
+| `kalo product images <id...>` | product gallery image URLs |
 | `kalo shop rank` | top shops; --type BRAND\|RETAILER --keyword |
 | `kalo shop detail <id...>` | revenue split, top product ids |
 | `kalo creator rank` | top creators; --followers --engagement --product |
@@ -57,11 +72,14 @@ Once the key is set, mention the credit cost when a request would fan out into m
 | `kalo creator images <id...>` | avatar URLs for a batch of creator ids |
 | `kalo video rank` | top shoppable videos; --product --creator --keyword --ai |
 | `kalo video detail <id...>` | full video metrics + trend |
+| `kalo video url <id...>` | playable mp4 URLs |
 | `kalo live rank` | top livestreams; --keyword |
 | `kalo live detail <id...>` | viewers, GPM, top product ids |
 | `kalo category rank` | top categories; --level 1\|2\|3 |
 | `kalo category detail <id...>` | category revenue split + trend |
 | `kalo category search <kw>` | resolve category ids by keyword |
+| `kalo credit` | remaining credit balance for this key |
+| `kalo credit logs` | what credits were spent on; --range --type --page |
 | `kalo config` | show/set credentials and defaults |
 
 ## Conventions
@@ -70,6 +88,8 @@ Once the key is set, mention the credit cost when a request would fan out into m
 - Regions: US GB ID TH VN PH MY SG JP MX DE IT FR ES BR; ranges like last7Day, last30Day, yyyy-MM, or yyyy-MM-dd~yyyy-MM-dd
 - Numeric ranges are "min-max" with both ends numeric, e.g. --revenue 1000-50000
 - Add --images on product/shop/creator rank or product detail to include image URLs
+- Signed media URLs (`product images`, `creator images`, `video url`) expire about 5 minutes after
+  the call — hand them to the user or download them now, never cache them
 - Run `kalo <command> --help` for per-command flags and examples
 
 ## Typical flows

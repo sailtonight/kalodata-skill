@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import os
-import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+
+import tomllib
 
 DEFAULT_BASE_URL = "https://www.kalodata.com/openapi/v1"
 
@@ -15,7 +16,10 @@ ENV_KEYS = {
     "region": "KALODATA_REGION",
     "language": "KALODATA_LANGUAGE",
     "currency": "KALODATA_CURRENCY",
+    "update_check": "KALODATA_UPDATE_CHECK",
 }
+
+_FALSEY = {"0", "false", "no", "off"}
 
 
 def config_path() -> Path:
@@ -31,10 +35,17 @@ class Config:
     region: str = "US"
     language: str = "en-US"
     currency: str = "USD"
+    update_check: bool = True
 
     @property
     def authed(self) -> bool:
         return bool(self.api_key)
+
+
+def _as_bool(value: str | None, fallback: bool) -> bool:
+    if value is None:
+        return fallback
+    return value.strip().lower() not in _FALSEY
 
 
 def _read_file() -> dict:
@@ -65,6 +76,7 @@ def load() -> Config:
         region=pick("region", "US") or "US",
         language=pick("language", "en-US") or "en-US",
         currency=pick("currency", "USD") or "USD",
+        update_check=_as_bool(pick("update_check"), True),
     )
 
 
