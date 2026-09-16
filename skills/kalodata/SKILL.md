@@ -69,7 +69,7 @@ Once the key is set, mention the credit cost when a request would fan out into m
 | `kalo shop detail <id...>` | revenue split, top product ids |
 | `kalo creator rank` | top creators; --followers --engagement --product |
 | `kalo creator detail <id\|@handle...>` | contact email/handle, GPM, trend; handle match is fuzzy — verify the returned creator_handle |
-| `kalo creator images <id...>` | avatar URLs for a batch of creator ids |
+| `kalo creator images <id...>` | avatar URLs, up to 100 creator ids |
 | `kalo video rank` | top shoppable videos; --product --creator --keyword --ai |
 | `kalo video detail <id...>` | full video metrics + trend |
 | `kalo video url <id...>` | playable mp4 URLs |
@@ -87,7 +87,7 @@ Once the key is set, mention the credit cost when a request would fan out into m
 - All list commands take --region --range --page (1-5) --limit (5-100) --sort --asc --fields --json
 - Regions: US GB ID TH VN PH MY SG JP MX DE IT FR ES BR; ranges like last7Day, last30Day, yyyy-MM, or yyyy-MM-dd~yyyy-MM-dd
 - Numeric ranges are "min-max" with both ends numeric, e.g. --revenue 1000-50000
-- Add --images on product/shop/creator rank or product detail to include image URLs
+- Add --images on product/shop rank or product detail to include image URLs; creator avatars come from `kalo creator images` (creator rank has no image column)
 - Signed media URLs (`product images`, `creator images`, `video url`) expire about 5 minutes after
   the call — hand them to the user or download them now, never cache them
 - Run `kalo <command> --help` for per-command flags and examples

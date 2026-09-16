@@ -27,7 +27,6 @@ ALL_FIELDS = (
     "live_revenue",
     "content_views",
     "creator_followers",
-    "image_url",
 )
 DEFAULT_FIELDS = ("creator_id", "creator_handle", "revenue", "creator_followers")
 
@@ -42,7 +41,7 @@ def rank(cfg, opts, args):
     common.put_range(body, opts, "followers", "followers_range", "--followers")
     if opts.get("category"):
         body["category_ids"] = opts["category"]
-    common.apply_images(opts, body, "image_url")
+    # upstream ignores need_image here — avatars come from `kalo creator images`
     return common.run_rank(
         cfg,
         opts,
@@ -57,6 +56,7 @@ def rank(cfg, opts, args):
         suggestions=(
             "Run `kalo creator detail <creator_id>` for contact info, GPM, trend",
             "Run `kalo video rank --creator <creator_id>` for a creator's top videos",
+            "Run `kalo creator images <creator_id...>` for avatar URLs",
         ),
     )
 
@@ -107,22 +107,25 @@ def detail(cfg, opts, ids):
     )
 
 
+AVATAR_BATCH_MAX = 100  # upstream cap on creator_ids per call
+
+
 def images(cfg, opts, ids):
     import json
 
-    body = common.base_body(cfg, opts, "detail")
-    body["creator_ids"] = ids
-    body["need_image"] = 1
-    data = api.request(cfg, "/tiktok/creator/images", body)
-    mapping = data if isinstance(data, dict) else {}
+    if len(ids) > AVATAR_BATCH_MAX:
+        raise UsageError(f"creator images takes at most {AVATAR_BATCH_MAX} ids per call")
+    data = api.request(cfg, "/tiktok/creator/avatar-images", {"creator_ids": ids}) or {}
+    mapping = data.get("images") if isinstance(data, dict) else None
+    rows = [{"creator_id": k, "image_url": v} for k, v in (mapping or {}).items()]
     if opts.get("json"):
-        render.out(json.dumps(mapping, ensure_ascii=False))
+        render.out(json.dumps({"rows": rows}, ensure_ascii=False))
         return 0
-    if not mapping:
-        render.emit_empty("creator images", f"{len(ids)} id(s)")
+    if not rows:
+        render.emit_empty("creator_images", f"{len(ids)} id(s)")
         return 0
-    rows = [{"creator_id": k, "image_url": v} for k, v in mapping.items()]
     render.emit_table("creator_images", rows, ("creator_id", "image_url"))
+    render.emit_help([common.URL_EXPIRY_NOTE])
     return 0
 
 
@@ -142,7 +145,6 @@ COMMANDS = [
             Flag("--type", "creator type", choices=("BELONGED_TO_SELLER", "INDEPENDENT")),
             Flag("--engagement", "engagement tier", choices=("LOW", "MEDIUM", "HIGH")),
             Flag("--keyword", "creator name or id keyword", metavar="TEXT"),
-            common.images_flag(),
         ],
         examples=[
             "kalo creator rank --region US --followers 10000-1000000",
@@ -166,12 +168,11 @@ COMMANDS = [
     ),
     Command(
         path="creator images",
-        summary="Avatar image URLs for a batch of creator ids",
+        summary="Avatar image URLs for a batch of creator ids (signed, ~5 min expiry)",
         handler=lambda cfg, opts, args: images(cfg, opts, args),
-        flags=common.common_flags("detail"),
         positional="creator_id",
         pos_min=1,
-        pos_max=None,
+        pos_max=None,  # capped at AVATAR_BATCH_MAX inside the handler
         examples=["kalo creator images 7212345678 7212345679"],
     ),
 ]
