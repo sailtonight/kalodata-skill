@@ -29,7 +29,7 @@ COMMAND_TABLE = [
     ("kalo shop detail <id...>", "revenue split, top product ids"),
     ("kalo creator rank", "top creators; --followers --engagement --product"),
     ("kalo creator detail <id|@handle...>", "contact email/handle, GPM, trend"),
-    ("kalo creator images <id...>", "avatar URLs for a batch of creator ids"),
+    ("kalo creator images <id...>", "avatar URLs, up to 100 creator ids (expire in ~5 min)"),
     ("kalo video rank", "top shoppable videos; --product --creator --keyword --ai"),
     ("kalo video detail <id...>", "full video metrics + trend"),
     ("kalo video url <id...>", "playable mp4 URLs (expire in ~5 min)"),
@@ -48,7 +48,7 @@ CONVENTIONS = [
     "Regions: US GB ID TH VN PH MY SG JP MX DE IT FR ES BR; ranges like last7Day, last30Day, "
     "yyyy-MM, or yyyy-MM-dd~yyyy-MM-dd",
     'Numeric ranges are "min-max" with both ends numeric, e.g. --revenue 1000-50000',
-    "Add --images on product/shop/creator rank or product detail to include image URLs",
+    "Add --images on product/shop rank or product detail to include image URLs; creator avatars come from `kalo creator images`",
     "Signed media URLs (product images, creator images, video url) expire ~5 minutes after the call",
     "Run `kalo <command> --help` for per-command flags and examples",
 ]

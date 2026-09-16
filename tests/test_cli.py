@@ -355,16 +355,27 @@ def test_images_flag_adds_column(capsys, env):
 
 
 def test_creator_images(capsys, env):
-    env.responses["/tiktok/creator/images"] = {
+    env.responses["/tiktok/creator/avatar-images"] = {
         "success": True,
-        "data": {"111": "https://img/a.jpg", "222": "https://img/b.jpg"},
+        "data": {
+            "images": {"111": "https://img/a.jpg", "222": "https://img/b.jpg"},
+            "expires_at": 1786529453.177,
+        },
     }
     code, out = run(capsys, "creator", "images", "111", "222")
     assert code == 0
-    body = env.requests[0][2]
-    assert body["creator_ids"] == ["111", "222"]
-    assert body["need_image"] == 1
+    assert env.requests[0][0] == "/tiktok/creator/avatar-images"
+    assert env.requests[0][2] == {"creator_ids": ["111", "222"]}
+    assert "creator_images[2]{creator_id,image_url}:" in out
     assert "https://img/a.jpg" in out
+    assert "expires_at" not in out
+    assert "expire ~5 minutes" in out
+
+
+def test_creator_images_batch_cap(capsys, env):
+    code, out = run(capsys, "creator", "images", *[str(i) for i in range(101)])
+    assert code != 0
+    assert "at most 100 ids" in out
 
 
 def test_creator_detail_by_handle(capsys, env):
