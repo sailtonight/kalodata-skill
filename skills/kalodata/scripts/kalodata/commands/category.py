@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-
 from .. import api, render
 from ..core import Command, Flag
 from . import common
@@ -76,7 +74,7 @@ def search(cfg, opts, args):
     data = api.request(cfg, "/tiktok/category/searchByKeyword", body, empty_on_not_found=True)
     rows = api.as_list(data)
     if opts.get("json"):
-        render.out(json.dumps(rows, ensure_ascii=False))
+        render.emit_json(rows)
         return 0
     if not rows:
         render.emit_empty(

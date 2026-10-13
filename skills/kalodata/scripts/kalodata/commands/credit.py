@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import datetime
-import json
 
 from .. import api, render, validate
 from ..core import Command, Flag
@@ -35,7 +34,7 @@ def _span(rng: str) -> tuple[str, str]:
 def balance(cfg, opts, args):
     data = api.request(cfg, "/credit/balance", {}, method="GET") or {}
     if opts.get("json"):
-        render.out(json.dumps(data, ensure_ascii=False))
+        render.emit_json(data)
         return 0
     sub = data.get("subRemain")
     display = {
@@ -63,7 +62,7 @@ def logs(cfg, opts, args):
     rows = rows if isinstance(rows, list) else []
 
     if opts.get("json"):
-        render.out(json.dumps(data, ensure_ascii=False))
+        render.emit_json(data)
         return 0
     if not rows:
         render.emit_empty(

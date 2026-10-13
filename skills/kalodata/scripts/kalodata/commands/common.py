@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import datetime
-import json
 from concurrent.futures import ThreadPoolExecutor
 
 from .. import api, render, validate
@@ -293,7 +292,7 @@ def run_rank(
     rows = [coerce_numbers(r) for r in api.as_list(data)]
 
     if opts.get("json"):
-        render.out(json.dumps(rows, ensure_ascii=False))
+        render.emit_json(rows)
         return 0
 
     context = f"region {body['region']}, {body['date_range']}"
@@ -353,7 +352,7 @@ def run_url_batch(
         payload = {"rows": rows}
         if errors:
             payload["errors"] = [{"id": i, "error": str(e)} for i, e in errors]
-        render.out(json.dumps(payload, ensure_ascii=False))
+        render.emit_json(payload)
         return 0 if rows else 1
 
     for entity_id, err in errors:
@@ -387,7 +386,7 @@ def run_detail_batch(
             {"id": i, "data": d} if e is None else {"id": i, "error": str(e)}
             for i, d, e in results
         ]
-        render.out(json.dumps(payload[0] if len(payload) == 1 else payload, ensure_ascii=False))
+        render.emit_json(payload[0] if len(payload) == 1 else payload)
         return 0 if any(e is None for _, _, e in results) else 1
 
     ok = 0
