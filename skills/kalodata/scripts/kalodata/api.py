@@ -52,6 +52,13 @@ def _translate_failure(code, message: str, empty_on_not_found: bool):
     if empty_on_not_found and ("not found" in low or "未找到" in msg):
         return []  # definitive empty result
     code = str(code)
+    # Upstream reports key failures as HTTP 200 + code 501, the same code it uses for
+    # missing parameters ("The key is not allowed" / "The key is not null or empty"),
+    # so only the message can tell them apart.
+    if code == "501" and low.startswith("the key "):
+        raise KaloError(
+            f"KaloData rejected the API key: {msg}", kind="auth", help_lines=AUTH_HELP
+        )
     if code == "2000" or "acquire connection timeout" in low:
         raise _Retryable(msg)
     if code == "2016":

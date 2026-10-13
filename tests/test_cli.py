@@ -101,6 +101,31 @@ def test_2016_parameter_misclassification(capsys, env):
     assert "rejected a parameter" in out
 
 
+def test_rejected_key_is_auth_error(capsys, env):
+    env.responses["/tiktok/product/rank"] = {
+        "success": False, "code": "501", "message": "The key is not allowed",
+    }
+    code, out = run(capsys, "product", "rank")
+    assert code == 1
+    assert "rejected the API key" in out
+    assert "kalo config set --key" in out
+
+
+def test_501_parameter_error_is_not_auth(capsys, env):
+    env.responses["/tiktok/product/rank"] = {
+        "success": False, "code": "501", "message": "region and language are required",
+    }
+    code, out = run(capsys, "product", "rank")
+    assert code == 1
+    assert "rejected the API key" not in out
+
+
+def test_limit_out_of_range_is_clamped(capsys, env):
+    code, _ = run(capsys, "product", "rank", "--limit", "1")
+    assert code == 0
+    assert env.requests[0][2]["page_size"] == 5
+
+
 def test_detail_trend_normalized(capsys, env):
     env.responses["/tiktok/product/detail"] = {
         "success": True,

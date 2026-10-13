@@ -32,8 +32,8 @@ def common_flags(tier: str, default_range: str = "last30Day") -> list[Flag]:
 
 def list_flags(sort_fields: tuple, default_sort: str = "revenue") -> list[Flag]:
     return [
-        Flag("--page", "page number 1-5", kind="int", default=1),
-        Flag("--limit", "items per page 5-100", kind="int", default=20),
+        Flag("--page", "page number 1-5", kind="int", default=1, min=1, max=5),
+        Flag("--limit", "items per page 5-100", kind="int", default=20, min=5, max=100),
         Flag("--sort", f"sort field: {'|'.join(sort_fields)}", default=default_sort),
         Flag("--asc", "sort ascending (default descending)", kind="flag", default=False),
         Flag("--fields", "comma-separated extra output fields (see --help)", metavar="F1,F2"),

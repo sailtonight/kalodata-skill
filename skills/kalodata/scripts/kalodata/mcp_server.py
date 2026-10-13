@@ -46,7 +46,8 @@ def create_server():
                 annotation = Literal[flag.choices]
             if flag.default is None:
                 annotation = annotation | None
-            fields[flag.dest] = (annotation, Field(default=flag.default, description=flag.help))
+            fields[flag.dest] = (annotation, Field(default=flag.default, description=flag.help,
+                                                   ge=flag.min, le=flag.max))
         model = create_model(
             f"{name}Arguments", __config__=ConfigDict(extra="forbid", strict=True), **fields
         )
