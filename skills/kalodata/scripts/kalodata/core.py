@@ -22,6 +22,8 @@ class Flag:
     choices: tuple | None = None
     metavar: str | None = None
     renamed_from: tuple = ()  # old names -> targeted hint instead of generic list
+    min: int | None = None  # int bounds: the CLI clamps, MCP rejects out-of-range values
+    max: int | None = None
 
     @property
     def dest(self) -> str:

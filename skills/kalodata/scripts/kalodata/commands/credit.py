@@ -114,8 +114,9 @@ COMMANDS = [
                 metavar="RANGE",
             ),
             Flag("--type", "filter by sourceType, e.g. OPEN_API_CALL", metavar="TYPE"),
-            Flag("--page", "page number", kind="int", default=1),
-            Flag("--limit", f"entries per page (max {LOGS_MAX_PAGE_SIZE})", kind="int", default=20),
+            Flag("--page", "page number", kind="int", default=1, min=1),
+            Flag("--limit", f"entries per page (max {LOGS_MAX_PAGE_SIZE})", kind="int", default=20,
+                 min=1, max=LOGS_MAX_PAGE_SIZE),
         ],
         examples=[
             "kalo credit logs --range last7Day",

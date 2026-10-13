@@ -29,6 +29,8 @@ def test_discovery_and_rank(env, capsys):
             assert tools["product_detail"].input_schema["required"] == ["ids"]
             assert tools["product_rank"].input_schema["additionalProperties"] is False
             assert "json" not in tools["product_rank"].input_schema["properties"]
+            limit = tools["product_rank"].input_schema["properties"]["limit"]
+            assert (limit["minimum"], limit["maximum"]) == (5, 100)
             result = await client.call_tool("product_rank", {
                 "region": "GB", "range": "last7Day", "category": ["42"], "limit": 5,
             })
@@ -49,6 +51,7 @@ def test_discovery_and_rank(env, capsys):
 @pytest.mark.parametrize("arguments", [
     {"limit": "five"}, {"unknown": True}, {"region": "INVALID"},
     {"affiliate": True, "no_affiliate": True},
+    {"limit": 1}, {"limit": 101}, {"page": 0}, {"page": 6},
 ])
 def test_invalid_arguments_do_not_query(env, arguments):
     async def check():
@@ -91,6 +94,21 @@ def test_missing_key_is_actionable(env, monkeypatch):
 
     anyio.run(check)
     assert env.requests == []
+
+
+def test_rejected_key_is_auth_error(env):
+    env.responses["/credit/balance"] = {
+        "success": False, "code": "501", "message": "The key is not allowed",
+    }
+
+    async def check():
+        async with Client(create_server()) as client:
+            result = await client.call_tool("credit_balance", {})
+            assert result.is_error
+            assert result.structured_content["kind"] == "auth"
+            assert result.structured_content["help"]
+
+    anyio.run(check)
 
 
 def test_concurrent_calls_keep_results_separate(env):
