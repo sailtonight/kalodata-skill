@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-
 from .. import config as config_mod
 from .. import onboarding, render, validate
 from ..core import Command, Flag
@@ -23,7 +21,7 @@ def config_show(cfg, opts, args):
         "update_check": "on" if cfg.update_check else "off",
     }
     if opts.get("json"):
-        render.out(json.dumps(data, ensure_ascii=False))
+        render.emit_json(data)
         return 0
     render.emit_detail("config", data)
     if not cfg.authed:

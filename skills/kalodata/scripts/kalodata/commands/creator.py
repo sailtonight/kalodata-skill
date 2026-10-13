@@ -111,15 +111,13 @@ AVATAR_BATCH_MAX = 100  # upstream cap on creator_ids per call
 
 
 def images(cfg, opts, ids):
-    import json
-
     if len(ids) > AVATAR_BATCH_MAX:
         raise UsageError(f"creator images takes at most {AVATAR_BATCH_MAX} ids per call")
     data = api.request(cfg, "/tiktok/creator/avatar-images", {"creator_ids": ids}) or {}
     mapping = data.get("images") if isinstance(data, dict) else None
     rows = [{"creator_id": k, "image_url": v} for k, v in (mapping or {}).items()]
     if opts.get("json"):
-        render.out(json.dumps({"rows": rows}, ensure_ascii=False))
+        render.emit_json({"rows": rows})
         return 0
     if not rows:
         render.emit_empty("creator_images", f"{len(ids)} id(s)")

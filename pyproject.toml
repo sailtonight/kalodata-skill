@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kalodata-mcp"
+dynamic = ["version"]
+description = "KaloData TikTok Shop analytics CLI and local MCP server"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = []
+
+[project.optional-dependencies]
+mcp = ["mcp>=2.3,<3", "pydantic>=2.11,<3", "anyio>=4.9,<5"]
+
+[project.scripts]
+kalo = "kalodata.cli:entry"
+kalodata-mcp = "kalodata.mcp_server:entry"
+
+[tool.setuptools.packages.find]
+where = ["skills/kalodata/scripts"]
+include = ["kalodata*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "kalodata.__version__"}
