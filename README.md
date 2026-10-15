@@ -84,6 +84,7 @@ release or manual clone is required once these changes are available on GitHub:
     "kalodata": {
       "command": "uvx",
       "args": [
+        "--python", ">=3.11",
         "--from",
         "kalodata-mcp[mcp] @ git+https://github.com/sailtonight/kalodata-skill",
         "kalodata-mcp"
@@ -115,10 +116,10 @@ For a local checkout, use this configuration (replace the absolute path):
 }
 ```
 
-The client launches and manages the server process. uv can provision Python 3.11+
-when necessary. If your desktop client cannot find `uv`/`uvx`, use the executable's
-absolute path. Existing `kalo config set --key ...` configuration also works;
-environment variables take precedence.
+The client launches and manages the server process. `--python ">=3.11"` lets uv fetch a
+suitable Python when the system one is older. If your desktop client cannot find
+`uv`/`uvx`, use the executable's absolute path. Existing `kalo config set --key ...`
+configuration also works; environment variables take precedence.
 
 Tool arguments use flag names without `--`, e.g.
 `product_rank({"region":"US","range":"last7Day","limit":5})`.
