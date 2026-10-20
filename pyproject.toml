@@ -9,10 +9,11 @@ description = "KaloData TikTok Shop analytics CLI and local MCP server"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
-dependencies = []
+dependencies = ["mcp>=2.3,<3", "pydantic>=2.11,<3", "anyio>=4.9,<5"]
 
 [project.optional-dependencies]
-mcp = ["mcp>=2.3,<3", "pydantic>=2.11,<3", "anyio>=4.9,<5"]
+# Kept empty so older client configs using "kalodata-mcp[mcp] @ ..." still resolve.
+mcp = []
 
 [project.scripts]
 kalo = "kalodata.cli:entry"

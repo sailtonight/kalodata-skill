@@ -1,6 +1,6 @@
 """Local stdio MCP adapter over the CLI's query registry.
 
-SDK dependencies are optional; importing or running the CLI never loads them.
+The CLI never imports the SDK, so the skill scripts still run on the standard library.
 """
 
 from __future__ import annotations
@@ -135,7 +135,8 @@ def entry() -> None:
         import anyio
         import mcp  # noqa: F401
     except ImportError:
-        print('MCP dependencies missing. Install with: uv pip install "kalodata-mcp[mcp]"',
+        print("MCP dependencies missing. Install with: "
+              'uv pip install "git+https://github.com/sailtonight/kalodata-skill"',
               file=sys.stderr)
         raise SystemExit(1)
     try:
