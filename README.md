@@ -71,8 +71,8 @@ Nouns: `product` · `shop` · `creator` · `video` · `live` · `category`. All 
 The repository also includes a stdio MCP server with 20 query tools, including
 `product_rank`, `product_detail`, `creator_rank`, `category_search`,
 `credit_balance` and `credit_logs`. It shares the CLI's API client, configuration,
-filters and validation. The CLI remains usable with Python's standard library only;
-MCP dependencies are installed separately through the `mcp` extra.
+filters and validation. The skill's CLI scripts still run on Python's standard library
+alone; the MCP dependencies are only installed with the package.
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then add this
 configuration to your MCP client. This installs directly from GitHub; no PyPI
@@ -85,8 +85,7 @@ release or manual clone is required once these changes are available on GitHub:
       "command": "uvx",
       "args": [
         "--python", ">=3.11",
-        "--from",
-        "kalodata-mcp[mcp] @ git+https://github.com/sailtonight/kalodata-skill",
+        "--from", "git+https://github.com/sailtonight/kalodata-skill",
         "kalodata-mcp"
       ],
       "env": {
@@ -105,8 +104,7 @@ For a local checkout, use this configuration (replace the absolute path):
     "kalodata": {
       "command": "uv",
       "args": [
-        "run", "--directory", "/absolute/path/to/kalodata-skill",
-        "--extra", "mcp", "kalodata-mcp"
+        "run", "--directory", "/absolute/path/to/kalodata-skill", "kalodata-mcp"
       ],
       "env": {
         "KALODATA_API_KEY": "YOUR_API_KEY"
@@ -121,6 +119,10 @@ suitable Python when the system one is older. If your desktop client cannot find
 `uv`/`uvx`, use the executable's absolute path. Existing `kalo config set --key ...`
 configuration also works; environment variables take precedence.
 
+If the server fails to start right after pasting the configuration, check that the
+`--from` value is still the plain `git+https://...` string. Copying through chat apps
+or rich-text documents can turn it into a Markdown link such as `[https://...](https://...)`.
+
 Tool arguments use flag names without `--`, e.g.
 `product_rank({"region":"US","range":"last7Day","limit":5})`.
 Batch tools use string arrays, e.g. `product_detail({"ids":["1729508370969629931"]})`;
@@ -134,7 +136,7 @@ five minutes. Configuration commands are not exposed as tools.
 To run the server manually from a checkout:
 
 ```sh
-uv run --extra mcp kalodata-mcp
+uv run kalodata-mcp
 ```
 
 This starts the protocol on stdin/stdout and waits for a client. It does not start
@@ -143,8 +145,7 @@ an HTTP server.
 ## Development
 
 ```sh
-uv run --with pytest pytest -q     # tests run against a local mock server, no credentials needed
-uv run --extra mcp --with pytest pytest -q  # includes MCP protocol and subprocess tests
+uv run --with pytest pytest -q     # local mock server and MCP protocol tests, no credentials needed
 uv build                          # build an installable wheel and source archive
 ```
 
