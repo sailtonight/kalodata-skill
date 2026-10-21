@@ -1,11 +1,11 @@
 ---
 name: kalodata
 description: >
-  Query TikTok Shop e-commerce analytics via the bundled `kalo` CLI (Python, zero install):
-  product / shop / creator / video / livestream / category rankings, details and revenue
-  trends from KaloData. Use whenever the user researches TikTok Shop or TikTok 小店 data —
-  选品、带货达人、店铺/商品销量、爆款视频、直播带货, trending products, top creators or
-  shops, revenue of a specific product/shop/creator — even if they never mention "kalodata".
+  Use for TikTok Shop market data: trending products, top creators, shop/product
+  sales and revenue, viral videos, livestreams, category rankings — 选品、带货达人、
+  店铺/商品销量、爆款视频、直播带货、TikTok 小店数据. Answers come from KaloData via the bundled
+  `kalo` CLI (Python, zero install). Use whenever the user researches TikTok Shop, even if
+  they never say "kalodata".
 ---
 
 # KaloData TikTok Shop analytics (`kalo`)
@@ -37,7 +37,7 @@ guess a key and don't retry the query. Walk the user through these three steps a
    no new key needed.
 2. **Save it** — `kalo config set --key <API_KEY>` (stored in `~/.config/kalodata/config.toml`,
    mode 0600), or set `KALODATA_API_KEY` in the environment.
-3. **Credits** — every query spends KaloData credits. Measured costs per call:
+3. **Credits** — every query spends Kalo Credits. Measured costs per call:
 
    | call | credits |
    |---|---|

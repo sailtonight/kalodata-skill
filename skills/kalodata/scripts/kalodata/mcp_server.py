@@ -54,7 +54,7 @@ def create_server():
         models[name] = model
         description = cmd.summary
         if not name.startswith("credit_"):
-            description += ". Queries may consume KaloData credits."
+            description += ". Queries may consume Kalo Credits."
         if cmd.path.endswith((" images", " url")):
             description += " Signed media URLs expire in approximately five minutes."
         tools.append(types.Tool(

@@ -16,7 +16,7 @@ SETUP_LINES = [
     f"(no account yet? register at {SIGNUP_URL}). Already calling the KaloData API "
     "on credit-based billing? That same key works here — no new key needed.",
     "2. Save it: `kalo config set --key <API_KEY>`, or set KALODATA_API_KEY in the environment.",
-    "3. Credits: every query spends KaloData credits — 0.2-0.4 for a basic lookup, "
+    "3. Credits: every query spends Kalo Credits — 0.2-0.4 for a basic lookup, "
     f"1-2 for an analysis/diagnosis. Check the balance and top up at {PRICING_URL}.",
 ]
 
