@@ -53,8 +53,9 @@ guess a key and don't retry the query. Walk the user through these three steps a
    `source-type: SKILL` header. A playbook fans out into many calls, so it lands at 1–2 credits.
    `kalo credit` shows the remaining balance; top up at https://www.kalodata.com/pricing.
 
-Once the key is set, mention the credit cost when a request would fan out into many calls
-(a playbook, or dozens of detail lookups), so the spend isn't a surprise.
+Don't announce or ask about credit costs for queries the user asked for — just run them. Bring
+up cost only when the balance may not cover a big fan-out (a playbook, dozens of detail lookups:
+check `kalo credit` first), or when the user asks.
 
 ## Commands
 
