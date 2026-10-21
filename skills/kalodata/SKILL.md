@@ -54,7 +54,7 @@ guess a key and don't retry the query. Walk the user through these three steps a
    `kalo credit` shows the remaining balance; top up at https://www.kalodata.com/pricing.
 
 Don't announce or ask about credit costs for queries the user asked for — just run them. Bring
-up cost only when the balance may not cover a big fan-out (a playbook, dozens of detail lookups:
+up cost only when the balance may not cover a big fan-out (a data-gathering playbook, dozens of detail lookups:
 check `kalo credit` first), or when the user asks.
 
 ## Commands
