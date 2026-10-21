@@ -37,7 +37,7 @@ guess a key and don't retry the query. Walk the user through these three steps a
    no new key needed.
 2. **Save it** — `kalo config set --key <API_KEY>` (stored in `~/.config/kalodata/config.toml`,
    mode 0600), or set `KALODATA_API_KEY` in the environment.
-3. **Credits** — every query spends KaloData credits. Measured costs per call:
+3. **Credits** — every query spends Kalo Credits. Measured costs per call:
 
    | call | credits |
    |---|---|
