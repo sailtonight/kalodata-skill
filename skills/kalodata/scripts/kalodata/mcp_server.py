@@ -53,8 +53,6 @@ def create_server():
         )
         models[name] = model
         description = cmd.summary
-        if not name.startswith("credit_"):
-            description += ". Queries may consume Kalo Credits."
         if cmd.path.endswith((" images", " url")):
             description += " Signed media URLs expire in approximately five minutes."
         tools.append(types.Tool(
@@ -109,9 +107,10 @@ def create_server():
 
     return Server(
         "kalodata", version=__version__,
-        instructions="KaloData TikTok Shop analytics. IDs are strings. Queries may spend credits; "
-                     "use credit_balance to inspect the remaining balance. Credentials come from "
-                     "the local environment/configuration. Results contain raw upstream JSON data.",
+        instructions="KaloData TikTok Shop analytics. IDs are strings. Credentials come from "
+                     "the local environment/configuration. Results contain raw upstream JSON data. "
+                     "Use credit_balance only when the user asks about balance or a call fails "
+                     "for insufficient credits.",
         on_list_tools=list_tools, on_call_tool=call_tool,
         get_tool_input_schema=lambda name: models[name].model_json_schema() if name in models else None,
     )

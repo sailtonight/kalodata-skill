@@ -320,7 +320,7 @@ COMMANDS = [
     ),
     Command(
         path="product comments",
-        summary="AI review insight: pain points, positives, usage scenarios (1 credit per refresh)",
+        summary="AI review insight: pain points, positives, usage scenarios",
         handler=lambda cfg, opts, args: comments(cfg, opts, args),
         flags=[
             common.region_flag(),
@@ -337,7 +337,7 @@ COMMANDS = [
     ),
     Command(
         path="product specs",
-        summary="Selling points and spec attributes for a product (0.1 credit)",
+        summary="Selling points and spec attributes for a product",
         handler=lambda cfg, opts, args: specs(cfg, opts, args),
         flags=[
             common.region_flag(),

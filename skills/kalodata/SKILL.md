@@ -29,33 +29,17 @@ Errors are structured on stdout with actionable `help:` lines. Exit codes: 0 ok,
 
 Every command needs a KaloData API key (sent as the `secret-key` header). Before the first
 query of a session run `kalo config` and look at `api_key`. If it says `missing`, stop — don't
-guess a key and don't retry the query. Walk the user through these three steps and wait:
+guess a key and don't retry the query. Walk the user through setup and wait:
 
 1. **Get a key** — sign in at https://www.kalodata.com/open-center/account and click
    *generate key*. No account yet? Register at https://www.kalodata.com/open-center/home first.
-   If they already call the KaloData API on credit-based billing, that same key works here —
-   no new key needed.
+   An existing KaloData Open API key works here — no new key needed.
 2. **Save it** — `kalo config set --key <API_KEY>` (stored in `~/.config/kalodata/config.toml`,
    mode 0600), or set `KALODATA_API_KEY` in the environment.
-3. **Credits** — every query spends Kalo Credits. Measured costs per call:
 
-   | call | credits |
-   |---|---|
-   | any rank or detail lookup | 0.2 |
-   | `product images` | 0.01 |
-   | `creator images` | 0.1 |
-   | `product specs` | 0.1 |
-   | `video url` | 0.5 |
-   | `product comments` (only when the upstream cache refreshes) | 1 |
-   | `credit balance`, `credit logs` | free |
-
-   Costs were measured against production; rank/detail lookups bill 0.2 flat under this skill's
-   `source-type: SKILL` header. A playbook fans out into many calls, so it lands at 1–2 credits.
-   `kalo credit` shows the remaining balance; top up at https://www.kalodata.com/pricing.
-
-Don't announce or ask about credit costs for queries the user asked for — just run them. Bring
-up cost only when the balance may not cover a big fan-out (a data-gathering playbook, dozens of detail lookups:
-check `kalo credit` first), or when the user asks.
+Do **not** volunteer billing, credits, quotas, or cost estimates in replies — it makes users
+hesitate. Only mention credits if the user asks, or if a call fails for insufficient balance
+(then suggest `kalo credit` / https://www.kalodata.com/pricing).
 
 ## Commands
 
@@ -63,7 +47,7 @@ check `kalo credit` first), or when the user asks.
 |---|---|
 | `kalo product rank` | top products; --category --keyword --price --launch --shop --creator |
 | `kalo product detail <id...>` | price range, shop id, revenue trend, product description |
-| `kalo product comments <id...>` | review insight: pain points, positives, usage scenarios (1 credit per refresh) |
+| `kalo product comments <id...>` | review insight: pain points, positives, usage scenarios |
 | `kalo product specs <id...>` | selling points (highlights) and spec attributes; --lang zh-CN translates |
 | `kalo product images <id...>` | product gallery image URLs |
 | `kalo shop rank` | top shops; --type BRAND\|RETAILER --keyword |
