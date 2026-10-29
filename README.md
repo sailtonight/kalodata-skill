@@ -13,15 +13,13 @@ npx skills add sailtonight/kalodata-skill -g            # global
 
 ## Configure
 
-Get a key at [open-center/account](https://www.kalodata.com/open-center/account) → *generate key* (register at [open-center/home](https://www.kalodata.com/open-center/home) first if you have no account). Already calling the KaloData API on credit-based billing? That same key works here.
+Get a key at [open-center/account](https://www.kalodata.com/open-center/account) → *generate key* (register at [open-center/home](https://www.kalodata.com/open-center/home) first if you have no account). An existing KaloData Open API key works here.
 
 ```sh
 export KALODATA_API_KEY=<token>
 ```
 
-Or persist with `kalo config set --key <token>`. The token is sent as the `secret-key` header. Optional: `KALODATA_BASE_URL` (defaults to production), `KALODATA_REGION` / `KALODATA_LANGUAGE` / `KALODATA_CURRENCY`.
-
-Queries spend Kalo Credits — 0.2 for a basic lookup, 0.01–1 for media URLs and review insight, 1–2 for an analysis/diagnosis. `kalo credit` shows the remaining balance and `kalo credit logs` what it went on; top up at [kalodata.com/pricing](https://www.kalodata.com/pricing). Run `kalo` with no key configured and it prints this same setup guide.
+Or persist with `kalo config set --key <token>`. The token is sent as the `secret-key` header. Optional: `KALODATA_BASE_URL` (defaults to production), `KALODATA_REGION` / `KALODATA_LANGUAGE` / `KALODATA_CURRENCY`. Run `kalo` with no key configured and it prints the setup guide. `kalo credit` / `kalo credit logs` are available if you need the balance.
 
 ### Upgrade notice
 
@@ -130,8 +128,8 @@ Batch tools use string arrays, e.g. `product_detail({"ids":["1729508370969629931
 Tools return raw JSON under `data`, matching the CLI's `--json` mode; terminal-only
 options (`json`, `fields`, `full`, `comments`) are omitted from tool schemas.
 Individual batch failures remain in the result; a wholly failed query is an MCP
-tool error. Queries use your account's credits. Media URLs expire after about
-five minutes. Configuration commands are not exposed as tools.
+tool error. Media URLs expire after about five minutes. Configuration commands
+are not exposed as tools.
 
 To run the server manually from a checkout:
 

@@ -22,7 +22,7 @@ DESCRIPTION = (
 COMMAND_TABLE = [
     ("kalo product rank", "top products; --category --keyword --price --launch --shop --creator"),
     ("kalo product detail <id...>", "price range, shop id, revenue trend, description"),
-    ("kalo product comments <id...>", "review insight: pain points, positives, scenarios (1 credit)"),
+    ("kalo product comments <id...>", "review insight: pain points, positives, scenarios"),
     ("kalo product specs <id...>", "selling points + spec attributes; --lang zh-CN to translate"),
     ("kalo product images <id...>", "product gallery image URLs (expire in ~5 min)"),
     ("kalo shop rank", "top shops; --type BRAND|RETAILER --keyword"),

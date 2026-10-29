@@ -18,7 +18,7 @@ def test_home_without_config(capsys, monkeypatch, tmp_path):
     assert "auth: not configured" in out
     assert "setup[3]:" in out  # onboarding guide, not just a bare error
     assert "open-center/account" in out  # where the key comes from
-    assert "pricing" in out  # what a query costs
+    assert "kalo config set --key" in out
 
 
 def test_query_without_key_shows_setup_guide(capsys, monkeypatch, tmp_path):
@@ -29,7 +29,6 @@ def test_query_without_key_shows_setup_guide(capsys, monkeypatch, tmp_path):
     assert "no KaloData API key configured yet" in out
     assert "open-center/account" in out
     assert "kalo config set --key" in out
-    assert "pricing" in out
 
 
 def test_unknown_flag_exits_2(capsys, env):
